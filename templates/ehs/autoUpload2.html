@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>智能图片管理系统</title>
+    <!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" />-->
+    <link data-type="index" href="/static/upload/index.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ehs/css/auto_upload.css" />
+
+    <script src="/static/upload/vue.js"></script>
+    <script src="/static/upload/index.js"></script>
+    <script src="/static/upload/axios.min.js"></script>
+    <script src="/static/upload/eruda.min.js"></script>
+    <script src="/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/js/js/jsbridge-mini.js" type="text/javascript"></script>
+    <script src="/static/fake-progress/index.js"></script>
+    <style></style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <div class="title">
+          <h1 class="title_item">智能图片管理系统</h1>
+          <h2>CtCode: [[ stats.ct_code ]]</h2>
+          <h3>创建时间: [[stats.CreateDate]]</h3>
+        </div>
+
+        <div class="header">
+          <div class="btn-group">
+            <!-- <el-button type="primary" icon="el-icon-folder-add" @click="startTimerData">开始计时</el-button> -->
+            <el-button type="primary" icon="el-icon-download" @click="batchGetData" :disabled="isLoading">批量获取数据</el-button>
+            <el-button type="success" icon="el-icon-upload" @click="batchUploadSelected" :disabled="isUploading || totalSelected === 0">批量上传已选([[ totalSelected ]])</el-button>
+            <el-button type="warning" icon="el-icon-refresh" @click="uploadByWeek">按星期上传</el-button>
+            <el-button type="info" icon="el-icon-picture" @click="getImageList" :disabled="isLoading">获取图片列表</el-button>
+            <el-button type="primary" icon="el-icon-view" @click="openPreviewSelected" :disabled="totalSelected === 0">预览已选</el-button>
+          </div>
+          <div v-if="isUploading" class="upload-controls">
+            <el-button v-if="isWaiting" @click="next" type="primary" size="small"> 跳过等待，继续下一个 </el-button>
+            <el-button @click="cancelUpload" type="danger" size="small"> 取消上传 </el-button>
+            <span v-if="isWaiting" class="waiting-tip"> （等待中，可点击跳过...） </span>
+          </div>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stats-item">
+            <span class="stats-value">[[ totalModules ]]</span>
+            <span class="stats-label">总模块数</span>
+          </div>
+          <div class="stats-item">
+            <span class="stats-value">[[ totalImages ]]/[[ loads ]]</span>
+            <span class="stats-label">图片总数/加载数</span>
+          </div>
+          <div class="stats-item">
+            <span class="stats-value">[[ totalSelected ]]</span>
+            <span class="stats-label">已选图片</span>
+          </div>
+          <div class="stats-item">
+            <span class="stats-value">[[ usedSpace ]]</span>
+            <span class="stats-label">已用空间</span>
+          </div>
+          <div class="stats-item">
+            <span class="stats-value">[[ NumberData(latitude) ]]/[[ NumberData(longitude) ]]</span>
+            <span class="stats-label">当前经纬度</span>
+          </div>
+          <div class="stats-item">
+            <span class="stats-value">[[ lastUpdate ]]</span>
+            <span class="stats-label">当前时间</span>
+          </div>
+          <div class="stats-item">
+            <span class="container-item stats-value" :style="secondsData">
+              <div class="hourglass" :style="hourglassStatus">
+                <div class="up"></div>
+                <div class="down"></div>
+              </div>
+            </span>
+            <span class="stats-label">剩余[[seconds]]秒</span>
+          </div>
+        </div>
+
+        <!-- 全局上传进度 -->
+        <div class="global-upload-progress" v-if="globalUploadProgress > 0">
+          <h3>全局上传进度-上传类型: [[enableTest ? "正常上传" : "测试上传"]]</h3>
+          <el-progress :percentage="globalUploadProgress" :status="globalUploadStatus" :stroke-width="12"></el-progress>
+          <div class="progress-info">
+            <span>已上传: [[ globalUploaded ]]/[[ globalTotal ]] 个模块</span>
+            <!-- <span>[[ globalUploadProgress ]]%</span> -->
+          </div>
+          <div class="retry-info" v-if="globalRetryCount > 0">重试次数: [[ globalRetryCount ]]</div>
+        </div>
+
+        <div class="search-box">
+          <el-input placeholder="搜索位置名称..." v-model="searchQuery" clearable style="width: 300px" prefix-icon="el-icon-search"></el-input>
+        </div>
+
+        <div class="modules-container">
+          <div class="module-card" v-for="(module, index) in filteredModules" :key="randomColor()+module.id" v-show="index >= (currentPage-1)*pageSize && index < currentPage*pageSize">
+            <div class="module-header">
+              <div>
+                <div class="location-name">[[ module.location ]]</div>
+                <div class="module-code">ID: [[ module.id ]]</div>
+              </div>
+              <el-tag :type="module.imgStatus === 'active' ? 'success' : 'warning'"> [[ module.imgStatus === 'active' ? '正常' : '待上传' ]] </el-tag>
+            </div>
+
+            <div class="preview-container">
+              <div v-if="module.images.length === 0" class="empty-state">
+                <i class="el-icon-picture"></i>
+                <span>暂无图片</span>
+              </div>
+              <div class="preview-item" v-for="(image, imgIndex) in module.images" :key="randomColor()+imgIndex" :class="{ selected: image.selected }" @click="toggleImageSelection(module.id, imgIndex)">
+                <!-- 图片懒加载 -->
+                <img v-if="image.loaded || isInViewport(module.id, imgIndex)" :src="picturesLoad(image)" :alt="image.name" :class="image.loaded ? 'loaded' : 'loading'" @load="imageLoaded(module.id, imgIndex)" @error="imageLoadError(module.id, imgIndex)" />
+                <div v-else class="lazy-loading" @click="loadImage(module.id, imgIndex)">点击加载</div>
+                <button class="select-btn" @click.stop="toggleImageSelection(module.id, imgIndex)">[[ image.selected ? '✓' : '+' ]]</button>
+                <button class="delete-btn" @click.stop="deleteImage(module.id, imgIndex)">×</button>
+              </div>
+            </div>
+
+            <div class="selection-info" v-if="getSelectedCount(module) > 0">已选择 [[ getSelectedCount(module) ]] 张图片</div>
+
+            <!-- <el-upload ref="upload" class="upload-btn" action="/ehs/SaveObjectPhotos/" :show-file-list="false" :on-change="handleProgress" :on-success="handleUploadSuccess" :before-upload="beforeUpload" :data="getUploadData(module)" :multiple="true" :disabled="module.uploading">
+              <el-button type="primary" icon="el-icon-upload" class="upload-btn" :disabled="module.uploading"> [[ module.uploading ? '上传中...' : '上传新图片' ]] </el-button>
+            </el-upload> -->
+
+            <div class="action-buttons">
+              <el-button type="success" icon="el-icon-upload" :disabled="getSelectedCount(module) === 0 || module.uploading" @click="uploadSelectedImages(module.id)"> [[ module.uploading ? '上传中...' : `上传已选(${getSelectedCount(module)})` ]] </el-button>
+              <el-button type="warning" icon="el-icon-close" :disabled="getSelectedCount(module) === 0 || module.uploading" @click="clearSelection(module.id)"> 清除选择 </el-button>
+            </div>
+
+            <div class="progress-container" v-if="module.uploadProgress > 0">
+              <el-progress :percentage="module.uploadProgress" :status="module.uploadStatus" :stroke-width="8"></el-progress>
+              <div class="progress-info">
+                <span>上传进度</span>
+                <span>[[ module.uploadProgress ]]%</span>
+              </div>
+              <div class="retry-info" v-if="module.retryCount > 0">重试次数: [[ module.retryCount ]]</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pagination">
+          <el-pagination @current-change="handleCurrentChange" :current-page="currentPage" :page-size="pageSize" layout="prev, pager, next, jumper" :total="filteredModules.length"></el-pagination>
+        </div>
+
+        <el-dialog title="预览选中图片" :visible.sync="previewDialogVisible" width="60%" append-to-body @closed="handlePreviewClosed">
+          <div v-if="previewImages.length > 0">
+            <div class="preview-dialog-grid">
+              <div class="preview-dialog-item" v-for="(image, index) in previewImages" :key="image.url + index">
+                <img :src="image.url" :alt="image.name" />
+                <div class="preview-dialog-meta">
+                  <div>位置：[[ image.moduleLocation ]]</div>
+                  <div>图片：[[ image.name ]]</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state">
+            <i class="el-icon-picture"></i>
+            <span>请选择需要预览的图片</span>
+          </div>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="handlePreviewClosed">关闭</el-button>
+          </span>
+        </el-dialog>
+      </div>
+    </div>
+
+    <script>
+      // 防抖函数
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      new Vue({
+        el: "#app",
+        delimiters: ["[[", "]]"], // 修改Vue的模板分隔符
+        data() {
+          return {
+            modules: [],
+            pictures: [],
+            searchQuery: "",
+            currentPage: 1,
+            loads: 0,
+            pageSize: 12,
+            totalModules: 61,
+            totalImages: 0,
+            totalSelected: 0,
+            convertedBase64: "",
+            usedSpace: "2.3GB",
+            fontStyleSettings: "normal", // bold
+            lastUpdate: "刚刚",
+            isLoading: false,
+            enableTest: true,
+            isWaiting: false,
+            isUploading: false,
+            latitude: 31.263788,
+            longitude: 120.731493,
+            // 倒计时
+            startTime: null,
+            isPaused: false,
+            isRunning: false,
+            totalSeconds: 2 * 60, // 默认5分钟
+            pausedTime: 0,
+            remainingSeconds: 0, //  totalSeconds;
+            secondsData: "", // "--seconds: 3s;--hourglass-status: paused",
+            hourglassStatus: "", // "--hourglass-status: paused",
+            seconds: 3,
+            timerInterval: null,
+            func: null,
+            // 全局上传状态
+            uploadStatus: false,
+            waitingTimeout: 60 * 2,
+            globalUploadProgress: 0,
+            globalUploadStatus: null,
+            globalUploaded: 0,
+            globalTotal: 0,
+            globalRetryCount: 0,
+            stats: {
+              ct_code: "",
+              CreateDate: "",
+            },
+            // 防抖函数存储
+            debouncedFunctions: {},
+            // 视口检查相关
+            viewportObserver: null,
+            // 图片加载状态
+            imageLoadStates: new Map(),
+            previewDialogVisible: false,
+            previewImages: [],
+            WEEK_CONFIG: {
+              Monday: ["RPOP000223122900010", "RPOP000223122900070", "RPOP000223122900071", "RPOP000223122900132", "RPOP000223122900133", "RPOP000223122900190", "RPOP000223122900191", "RPOP000223122900250", "RPOP000223122900251"],
+              Tuesday: ["RPOP000223122900559", "RPOP000223122900560", "RPOP000223122900558", "RPOP000223122900511", "RPOP000223122900457", "RPOP000223122900402", "RPOP000223122900359", "RPOP000223122900360", "RPOP000223122900306", "RPOP000223122900307", "RPOP000223122900305"],
+              Wednesday: ["RPOP000223122900788", "RPOP000223122900759", "RPOP000223122900734", "RPOP000223122900725", "RPOP000223122900719", "RPOP000223122900710", "RPOP000223122900686", "RPOP000223122900661", "RPOP000223122900635", "RPOP000223122900608"],
+              Thursday: ["RPOP000223122500054", "RPOP000223122500029", "RPOP000223122500003", "RPOP000223122500078", "RPO002738"],
+              Friday: ["RPOP000223122500141", "RPOP000223122500191", "RPOP000223122500190", "RPOP000223122500200", "RPOP000223122500192"],
+            },
+            randomColor: () => {
+              return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+            },
+          };
+        },
+        computed: {
+          filteredModules() {
+            if (!this.searchQuery) {
+              return this.modules;
+            }
+            return this.modules.filter((module) => module.location.toLowerCase().includes(this.searchQuery.toLowerCase()));
+          },
+        },
+        mounted() {
+          if (/Android|Adr/i.test(navigator.userAgent)) eruda.init();
+
+          this.func = debounce(this.startTimer, 100);
+
+          this.initHourglass();
+          this.reqableMainCode();
+          // this.obtainInspectionData();
+          this.calculateStats();
+          this.setupIntersectionObserver();
+          setInterval(() => {
+            this.updateWatermark();
+            this.lastUpdate = new Date().toLocaleTimeString();
+          }, 1000);
+        },
+        beforeDestroy() {
+          if (this.viewportObserver) {
+            this.viewportObserver.disconnect();
+          }
+        },
+        methods: {
+          // 设置图片懒加载的Intersection Observer
+          setupIntersectionObserver() {
+            if ("IntersectionObserver" in window) {
+              this.viewportObserver = new IntersectionObserver(
+                (entries) => {
+                  entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                      const { moduleId, imgIndex } = entry.target.dataset;
+                      this.loadImage(moduleId, parseInt(imgIndex));
+                      this.viewportObserver.unobserve(entry.target);
+                    }
+                  });
+                },
+                {
+                  rootMargin: "50px 0px", // 提前50px开始加载
+                  threshold: 0.1,
+                }
+              );
+            }
+          },
+          NumberData(value) {
+            return Number(value).toFixed(2);
+          },
+          generateRandomLatitude() {
+            return 31.260001 + Math.random() * (31.269999 - 31.260001);
+          },
+          generateRandomLongitude() {
+            return 120.700001 + Math.random() * (120.799999 - 120.700001);
+          },
+          updateWatermark() {
+            this.latitude = this.generateRandomLatitude();
+            this.longitude = this.generateRandomLongitude();
+          },
+          handleProgress(file, fileList) {
+            console.log(file, fileList);
+          },
+          submitUpload() {
+            this.$refs.upload.submit();
+          },
+          initHourglass() {
+            this.totalSeconds = Math.floor(Math.random() * 59) + 1;
+            this.secondsData = `--seconds: ${this.totalSeconds}s;--hourglass-status: paused`;
+            this.seconds = this.totalSeconds;
+          },
+          async reqableMainCode() {
+            const url = "/ehs/main/";
+            try {
+              console.log("测试状态", this.enableTest);
+              if (this.enableTest) {
+                const response = await axios.post(url);
+                const { Data: rowData = [] } = response.data.data.data || {};
+
+                if (Array.isArray(rowData) && rowData.length > 0) {
+                  const { RecordCode, CreateDate } = rowData[0];
+                  this.stats.ct_code = RecordCode;
+                  this.stats.CreateDate = CreateDate;
+                  await this.reqableMainList(this.stats.ct_code);
+                } else {
+                  await this.reqableMainList("CT251106000024");
+                }
+              } else {
+                const timer = 10;
+                this.waitingTimeout = timer;
+                this.totalSeconds = timer;
+                const ct_code = "CT251026000023";
+                this.stats.ct_code = ct_code;
+                this.stats.CreateDate = this.formatDateTime();
+                await this.reqableMainList(ct_code);
+              }
+            } catch (error) {
+              console.error("请求失败:", error);
+              this.$message.error("数据加载失败，请检查网络连接");
+            }
+          },
+          formatDateTime(date = new Date()) {
+            const formatter = new Intl.DateTimeFormat("en-CA", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            }).format(date);
+            return formatter.replace(", ", " ");
+          },
+          async reqableMainList(ct_code, enableTest = false) {
+            const url = "/ehs/list/";
+            try {
+              const obj = {
+                ct_code: ct_code,
+                enableTest: enableTest,
+              };
+              const response = await axios.post(url, obj);
+              console.log("请求成功:", response.data);
+              this.edgeGroups = response.data.data;
+              this.obtainInspectionData(this.edgeGroups);
+            } catch (error) {
+              console.error("请求失败:", error);
+              this.$message.error("巡检数据加载失败");
+            }
+          },
+          getCurrentWeekday() {
+            const now = new Date();
+            const WEEK_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const dayName = WEEK_DAYS[now.getDay()];
+            if (dayName.includes("Thursday")) {
+              return this.WEEK_CONFIG[dayName].slice(0, -1);
+            }
+            return this.WEEK_CONFIG[dayName] || [];
+          },
+          isInViewport(moduleId, imgIndex) {
+            return imgIndex < 6;
+          },
+
+          loadImage(moduleId, imgIndex) {
+            const module = this.modules.find((m) => m.id === moduleId);
+            if (module && module.images[imgIndex]) {
+              this.$set(module.images[imgIndex], "loaded", true);
+            }
+          },
+          updateLoadStats() {
+            this.loads = this.modules.reduce((total, module) => {
+              return total + module.images.filter((img) => img.loaded && !img.loadError).length;
+            }, 0);
+          },
+
+          // 图片加载完成
+          imageLoaded(moduleId, imgIndex) {
+            const module = this.modules.find((m) => m.id === moduleId);
+            if (module && module.images[imgIndex]) {
+              this.$set(module.images[imgIndex], "loaded", true);
+              this.$set(module.images[imgIndex], "loadError", false);
+              this.updateLoadStats();
+            }
+          },
+
+          // 图片加载失败
+          imageLoadError(moduleId, imgIndex) {
+            console.log("图片加载失败", moduleId);
+            const module = this.modules.find((m) => m.id === moduleId);
+            if (module && module.images[imgIndex]) {
+              this.$set(module.images[imgIndex], "loadError", true);
+              console.error(`图片加载失败: ${module.images[imgIndex].url}`);
+            }
+          },
+          setupWatermarkStyle(ctx, canvas) {
+            const baseSize = Math.max(canvas.width, canvas.height);
+            const fontSize = Math.max(18, Math.floor(baseSize * 0.023));
+
+            ctx.fillStyle = "white";
+            ctx.font = `${this.fontStyleSettings} ${fontSize}px Arial, sans-serif`;
+            ctx.textAlign = "left";
+            ctx.textBaseline = "bottom";
+          },
+
+          // 获取水印文本
+          getWatermarkText() {
+            const now = new Date();
+            const minute = new Date(now.getTime() + 60 * 1000);
+            const date = new Date(minute);
+            const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+
+            const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            });
+
+            const formattedDate = dateFormatter.format(date).replace(/\//g, "-");
+            const weekday = weekdays[date.getDay()];
+
+            return {
+              line1: `纬度:${this.latitude.toFixed(6)} 经度:${this.longitude.toFixed(6)}`,
+              line2: `${formattedDate} ${weekday}`,
+            };
+          },
+
+          // 绘制水印文本
+          drawWatermarkText(ctx, canvas, line1, line2) {
+            const baseSize = Math.max(canvas.width, canvas.height);
+            const fontSize = Math.max(18, Math.floor(baseSize * 0.023));
+            const lineGap = Math.floor(fontSize * 0.5);
+            const adjustY = Math.floor(fontSize * 0.2);
+            const centerX = Math.floor(canvas.width / 2);
+            const bottomPadding = Math.floor(fontSize * 1.2);
+            const maxTextWidth = Math.max(ctx.measureText(line1).width, ctx.measureText(line2).width);
+            const padding = Math.floor(centerX - maxTextWidth / 2);
+
+            const y2 = canvas.height - bottomPadding + adjustY;
+            const y1 = y2 - (lineGap + fontSize) - adjustY;
+
+            ctx.fillText(line1, padding, y1);
+            ctx.fillText(line2, padding, y2);
+          },
+          async imageToBlob(src, type = "image/png") {
+            return new Promise((resolve, reject) => {
+              const img = new Image();
+              img.crossOrigin = "Anonymous";
+
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                this.setupWatermarkStyle(ctx, canvas);
+
+                const { line1, line2 } = this.getWatermarkText();
+
+                this.drawWatermarkText(ctx, canvas, line1, line2);
+                canvas.toBlob((blob) => {
+                  if (blob) {
+                    resolve(blob);
+                  } else {
+                    reject(new Error("Blob 转换失败"));
+                  }
+                }, type);
+              };
+
+              img.onerror = reject;
+              img.src = src;
+            });
+          },
+          async obtainInspectionData(rowData) {
+            try {
+              const imageListResult = await this.getImageListData();
+              const ehsData = rowData;
+              console.log("成功获取巡检数据和图片列表", { imageListResult, ehsData });
+              if (!ehsData || !Array.isArray(ehsData)) {
+                console.warn("obtainInspectionData: 获取的巡检数据为空或格式不正确");
+                this.$message.error("获取巡检数据失败");
+                return;
+              }
+              this.generateModules(imageListResult, ehsData);
+            } catch (error) {
+              console.error("获取巡检数据时发生错误:", error);
+              this.$message.error("获取巡检数据失败，请检查网络连接");
+            }
+          },
+
+          generateModules(photosData, inspectionData) {
+            if (!Array.isArray(inspectionData) || inspectionData.length === 0) {
+              console.warn("generateModules: 巡检数据为空或不是数组");
+              this.$message.error("巡检数据为空");
+              return;
+            }
+
+            if (!Array.isArray(photosData)) {
+              console.warn("generateModules: 图片数据不是数组");
+              this.$message.warning("图片数据格式不正确");
+            }
+
+            try {
+              this.modules = inspectionData.map((item, index) => {
+                const obj = item;
+                const freeze = Object.freeze(item);
+                const matchedPhotos = Array.isArray(photosData) ? photosData.find((photo) => photo.id === item.CheckAreaCode) : null;
+
+                const images = this.processImages(matchedPhotos, { formData: { obj, freeze } });
+
+                return {
+                  id: item.CheckAreaCode || `MOD_${index + 1}`,
+                  location: item.CheckAreaName || `未知位置_${index + 1}`,
+                  imgStatus: images.length > 0 ? "active" : "pending",
+                  images: images,
+                  uploadProgress: 0,
+                  uploadStatus: null,
+                  uploading: false,
+                  retryCount: 0,
+                  rawData: { ...item },
+                };
+              });
+
+              // 初始化防抖函数
+              this.initializeDebouncedFunctions();
+
+              // 更新统计信息
+              this.calculateStats();
+
+              console.log(`成功生成 ${this.modules.length} 个巡检模块`);
+            } catch (error) {
+              console.error("generateModules: 处理模块数据时发生错误", error);
+              this.$message.error("生成模块数据失败");
+              this.modules = [];
+            }
+          },
+
+          processImages(photoData, obj) {
+            if (!photoData || !photoData.children || !Array.isArray(photoData.children)) {
+              return [];
+            }
+
+            return photoData.children
+              .filter((photo) => photo != null)
+              .map((photo, index) => ({
+                name: photo.name || "未命名图片",
+                url: photo.url || "",
+                size: typeof photo.size === "number" ? photo.size : 0,
+                selected: false,
+                loaded: index < 3, // 前3张图片立即加载
+                loadError: false,
+                rawData: { ...photo },
+                ...obj,
+              }));
+          },
+
+          initializeDebouncedFunctions() {
+            if (!this.debouncedFunctions) {
+              this.debouncedFunctions = {};
+            }
+
+            this.modules.forEach((module) => {
+              if (module.id && !this.debouncedFunctions[module.id]) {
+                this.debouncedFunctions[module.id] = debounce(() => {
+                  this.uploadSelectedImages(module.id);
+                }, 500);
+              }
+            });
+          },
+          resetSelectedImages(modules) {
+            return modules.map((module) => {
+              const len = module.images.length;
+              if (len > 1) {
+                const randomIndex = Math.floor(Math.random() * len);
+                module.images.forEach((img) => (img.selected = false));
+                module.images[randomIndex].selected = true;
+                return module.images[randomIndex];
+              } else {
+                module.images[0].selected = true;
+                return module.images[0];
+              }
+            });
+          },
+
+          updateWeekday(data) {
+            const filteredModules = this.modules
+              .filter((module) => data.includes(module.id))
+              .map((module) => {
+                module.selected = false;
+                return module;
+              });
+            return this.resetSelectedImages(filteredModules);
+          },
+
+          uploadByWeek() {
+            this.$message.info("正在启用星期上传数据...");
+            const WeekdayData = this.getCurrentWeekday();
+            if (WeekdayData.length > 0) {
+              this.module = this.updateWeekday(WeekdayData);
+              console.log("上传数据：", this.module);
+              this.calculateStats(); // 更新统计信息
+            }
+          },
+          getUploadData(moduleId) {
+            const params = {
+              CheckAreaCode: moduleId.id,
+              // ct_code: moduleId.images[0].formData.obj.TemplateList[0].CTCode,
+              // CheckStartDate: moduleId.images[0].formData.obj.CheckStartDate,
+            };
+            return params;
+          },
+
+          // 添加一个辅助方法来重新加载数据
+          async reloadInspectionData() {
+            try {
+              this.$message.info("正在重新加载数据...");
+              await this.obtainInspectionData();
+              this.$message.success("数据重新加载成功");
+            } catch (error) {
+              console.error("重新加载数据失败:", error);
+              this.$message.error("重新加载数据失败");
+            }
+          },
+
+          calculateStats() {
+            this.totalModules = this.modules.length;
+            this.totalImages = this.modules.reduce((total, module) => total + module.images.length, 0);
+            this.totalSelected = this.modules.reduce((total, module) => {
+              return total + module.images.filter((img) => img.selected).length;
+            }, 0);
+
+            const totalSize = this.modules.reduce((total, module) => {
+              return total + module.images.reduce((moduleTotal, image) => moduleTotal + image.size, 0);
+            }, 0);
+
+            this.usedSpace = (totalSize / 1024 / 1024).toFixed(1) + "MB";
+            this.lastUpdate = new Date().toLocaleTimeString();
+          },
+
+          toggleImageSelection(moduleId, imgIndex) {
+            const module = this.modules.find((m) => m.id === moduleId);
+            if (module) {
+              module.images[imgIndex].selected = !module.images[imgIndex].selected;
+              this.calculateStats();
+            }
+          },
+
+          getSelectedCount(module) {
+            return module.images.filter((img) => img.selected).length;
+          },
+
+          clearSelection(moduleId) {
+            const module = this.modules.find((m) => m.id === moduleId);
+            if (module) {
+              module.images.forEach((img) => {
+                img.selected = false;
+              });
+              this.calculateStats();
+            }
+          },
+
+          openPreviewSelected() {
+            const selected = [];
+            this.modules.forEach((module) => {
+              module.images.forEach((img) => {
+                if (img.selected) {
+                  selected.push({
+                    ...img,
+                    moduleId: module.id,
+                    moduleLocation: module.location,
+                  });
+                }
+              });
+            });
+
+            if (selected.length === 0) {
+              this.$message({
+                message: "请选择需要预览的图片",
+                type: "warning",
+              });
+              return;
+            }
+
+            this.previewImages = selected;
+            this.previewDialogVisible = true;
+          },
+
+          handlePreviewClosed() {
+            this.previewDialogVisible = false;
+            this.previewImages = [];
+          },
+
+          // 上传选中的图片（带重试机制）
+          async uploadSelectedImages(moduleId, retryCount = 0) {
+            const module = this.modules.find((m) => m.id === moduleId);
+            if (!module) {
+              this.$message.error("未找到对应模块");
+              return;
+            }
+
+            const selectedImages = module.images.filter((img) => img.selected);
+            if (selectedImages.length === 0) {
+              this.$message({
+                message: "请先选择要上传的图片",
+                type: "warning",
+              });
+              return;
+            }
+
+            // 设置上传状态
+            module.uploading = true;
+            module.uploadProgress = 0;
+            module.uploadStatus = null;
+            module.retryCount = retryCount;
+
+            const totalImages = selectedImages.length;
+            let uploadedCount = 0;
+            const maxRetries = 3;
+
+            try {
+              for (let i = 0; i < selectedImages.length; i++) {
+                const image = selectedImages[i];
+                if (this.enableTest) {
+                  this.uploadStatus = await this.simulateUpload(image, moduleId);
+                } else {
+                  this.uploadStatus = await this.simulateUploadTest(image, moduleId);
+                }
+
+                if (this.uploadStatus) {
+                  uploadedCount++;
+                  module.uploadProgress = Math.round((uploadedCount / totalImages) * 100);
+
+                  // 更新全局进度
+                  this.updateGlobalProgress();
+                } else {
+                  // 上传失败，重试逻辑
+                  if (retryCount < maxRetries) {
+                    this.$message({
+                      message: `图片上传失败，正在进行第${retryCount + 1}次重试...`,
+                      type: "warning",
+                    });
+
+                    // 递归调用重试
+                    return this.uploadSelectedImages(moduleId, retryCount + 1);
+                  } else {
+                    // 重试次数用完，标记为失败
+                    module.uploadStatus = "exception";
+                    this.$message({
+                      message: `图片上传失败，已重试${maxRetries}次`,
+                      type: "error",
+                    });
+                    break;
+                  }
+                }
+              }
+
+              if (uploadedCount === totalImages) {
+                // this.resetTimer();
+                module.uploadStatus = "success";
+                setTimeout(() => {
+                  this.$message.success(`成功上传 ${uploadedCount} 张图片`);
+                }, 100);
+                // 清除选择状态
+                this.clearSelection(moduleId);
+              }
+            } catch (error) {
+              module.uploadStatus = "exception";
+              this.$message({
+                message: `上传过程中发生错误: ${error.message}`,
+                type: "error",
+              });
+            } finally {
+              module.uploading = false;
+            }
+          },
+
+          // 模拟上传函数
+          async simulateUpload(image, moduleId) {
+            try {
+              const TIMEOUT = 150000;
+              const formData = image.formData.obj.TemplateList[0].CTCode;
+              const params = {
+                CheckAreaCode: moduleId,
+                ct_code: image.formData.obj.TemplateList[0].CTCode,
+                CheckStartDate: image.formData.obj.CheckStartDate,
+              };
+              const name = image.name;
+              const url = image.url;
+              const BlobInfo = await this.imageToBlob(url);
+              const form = new FormData();
+              form.append("object_code", JSON.stringify(params));
+              form.append("file", BlobInfo, name);
+              const response = await axios.post("/ehs/SaveObjectPhotos/", form, { timeout: TIMEOUT });
+              return response.data.code === 200;
+            } catch (error) {
+              console.error("上传失败:", error);
+              return false;
+            }
+          },
+          async simulateUploadTest(image, moduleId) {
+            try {
+              const TIMEOUT = 150000;
+              const response = await axios.post("/api/SaveObjectPhotos/");
+              return response.data.code === 200;
+            } catch (error) {
+              console.error("上传失败:", error);
+              return false;
+            }
+          },
+          updateTimerDisplay() {
+            this.seconds = this.remainingSeconds;
+          },
+          updateTimer() {
+            if (!this.isRunning) {
+              if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+              }
+              return;
+            }
+
+            const currentTime = new Date().getTime();
+            const elapsedSeconds = Math.floor((currentTime - this.startTime) / 1000);
+            this.remainingSeconds = Math.max(0, this.totalSeconds - elapsedSeconds);
+
+            this.updateTimerDisplay();
+
+            if (this.remainingSeconds <= 0) {
+              if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+              }
+              this.isRunning = false;
+              this.stopSandglass("timerFinished");
+            }
+          },
+          startTimerData() {
+            this.totalSeconds = Math.floor(Math.random() * 58) + 3;
+            this.isRunning = true;
+            this.seconds = this.totalSeconds;
+            // this.startSandglass();
+            this.func();
+          },
+          startSandglass() {
+            this.$message.success(`计时开始-${this.totalSeconds}s`);
+            this.secondsData = `--seconds: ${this.totalSeconds}s; --hourglass-status: running`;
+          },
+          stopSandglass(row) {
+            this.$message.warning(`计时暂停 type: ${row}`);
+            this.secondsData = `--seconds: ${this.totalSeconds}s; --hourglass-status: paused`;
+            if (this.timerInterval) {
+              clearInterval(this.timerInterval);
+              this.timerInterval = null;
+            }
+          },
+          startTimer() {
+            this.startSandglass();
+            console.log("status", { timerRunning: this.isRunning, timerPaused: this.isPaused, totalSeconds: this.totalSeconds, remainingSeconds: this.remainingSeconds, Uploading: this.isUploading, Waiting: this.isWaiting });
+
+            if (this.timerInterval) {
+              clearInterval(this.timerInterval);
+              this.timerInterval = null;
+            }
+
+            if (this.isPaused) {
+              this.startTime = new Date().getTime() - this.pausedTime * 1000;
+              this.isPaused = false;
+            } else {
+              this.startTime = new Date().getTime();
+              this.remainingSeconds = this.totalSeconds;
+            }
+            this.isRunning = true;
+
+            this.animate();
+          },
+          animate() {
+            if (!this.isRunning) {
+              if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+              }
+              return;
+            }
+
+            if (this.timerInterval) return;
+            this.timerInterval = setInterval(() => {
+              this.updateTimer();
+            }, 100);
+
+            this.updateTimer();
+          },
+          pauseTimer() {
+            if (!this.isRunning) return;
+            this.isRunning = false;
+            this.isPaused = true;
+            this.pausedTime = this.totalSeconds - this.remainingSeconds;
+            if (this.timerInterval) {
+              clearInterval(this.timerInterval);
+              this.timerInterval = null;
+            }
+            this.stopSandglass("pauseTimer");
+          },
+          resetTimer() {
+            this.isRunning = false;
+            this.isPaused = false;
+            if (this.timerInterval) {
+              clearInterval(this.timerInterval);
+              this.timerInterval = null;
+            }
+            this.updateTimerDisplay();
+            this.stopSandglass("resetTimer");
+          },
+          async batchUploadSelected() {
+            if (this.totalSelected === 0) {
+              this.$message.warning("请先选择要上传的图片");
+              return;
+            }
+
+            // 初始化上传状态
+            this.isUploading = true;
+            this.globalUploadProgress = 0;
+            this.globalUploadStatus = null;
+            this.globalUploaded = 0;
+            this.globalRetryCount = 0;
+
+            // 添加上传控制变量
+            this.isWaiting = false;
+            this.currentWaitResolve = null;
+            this.uploadCancelled = false;
+
+            // 获取所有有选中图片的模块
+            const modulesWithSelected = this.modules.filter((module) => module.images.some((img) => img.selected));
+            this.globalTotal = modulesWithSelected.length;
+
+            try {
+              for (const [index, module] of modulesWithSelected.entries()) {
+                // 检查是否取消上传
+                if (this.uploadCancelled) break;
+                if (index > 0) {
+                  this.isWaiting = true;
+
+                  // 初始化并启动计时器
+                  this.totalSeconds = this.waitingTimeout;
+                  this.isRunning = true;
+                  this.isPaused = false;
+                  this.func();
+
+                  const waitPromise = new Promise((resolve) => {
+                    this.currentWaitResolve = resolve;
+                  });
+
+                  const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve("timeout"), this.waitingTimeout * 1000));
+                  const result = await Promise.race([waitPromise, timeoutPromise]);
+
+                  // 停止计时器
+                  this.pauseTimer();
+                  this.isWaiting = false;
+                  this.currentWaitResolve = null;
+
+                  if (this.uploadCancelled) break;
+                }
+                await this.uploadSelectedImages(module.id);
+
+                this.globalUploaded++;
+                this.globalUploadProgress = Math.round((this.globalUploaded / this.globalTotal) * 100);
+              }
+
+              // 上传完成
+              if (!this.uploadCancelled) {
+                this.globalUploadStatus = "success";
+                this.$message({
+                  message: `批量上传完成，成功上传 ${this.globalUploaded} 个模块的图片`,
+                  type: "success",
+                });
+                this.pauseTimer();
+              } else {
+                this.$message({
+                  message: `上传已取消，已完成 ${this.globalUploaded} 个模块的上传`,
+                  type: "info",
+                });
+                this.pauseTimer();
+              }
+            } catch (error) {
+              this.globalUploadStatus = "exception";
+              console.error("批量上传错误:", error);
+              this.$message({
+                message: `批量上传过程中发生错误: ${error.message}`,
+                type: "error",
+              });
+              this.pauseTimer();
+            } finally {
+              this.isUploading = false;
+              this.isWaiting = false;
+              this.currentWaitResolve = null;
+            }
+          },
+
+          // 跳过当前等待，继续下一个模块
+          next() {
+            if (this.isWaiting && this.currentWaitResolve) {
+              this.pauseTimer();
+              this.currentWaitResolve("skip");
+            }
+          },
+
+          // 取消上传
+          cancelUpload() {
+            this.uploadCancelled = true;
+            if (this.isWaiting && this.currentWaitResolve) {
+              this.pauseTimer();
+              this.currentWaitResolve("cancel");
+            }
+          },
+          // 更新全局进度
+          updateGlobalProgress() {},
+          batchGetData() {
+            if (this.isLoading) return;
+
+            this.isLoading = true;
+            this.$message({
+              message: "开始批量获取数据...",
+              type: "info",
+            });
+
+            this.reloadInspectionData();
+            setTimeout(() => {
+              this.isLoading = false;
+            }, 1500);
+          },
+          picturesLoad(imgData) {
+            if (imgData?.rawData?.has_base64) {
+              return imgData.rawData.base64;
+            }
+
+            if (imgData?.url) {
+              return imgData.url;
+            }
+
+            if (imgData instanceof File || imgData instanceof Blob) {
+              return URL.createObjectURL(imgData);
+            }
+
+            if (typeof imgData === "string" && imgData.startsWith("data:image")) {
+              return imgData;
+            }
+
+            if (this.isAndroid() && imgData) {
+              this.convertImageToBase64(imgData);
+              return this.convertedBase64 || "/default-image.jpg";
+            }
+
+            return this.convertedBase64 || "/default-image.jpg";
+          },
+
+          isAndroid() {
+            return /Android|Adr/i.test(navigator.userAgent);
+          },
+
+          async convertImageToBase64(imgData) {
+            try {
+              let imageUrl = "";
+
+              if (imgData.url) {
+                imageUrl = imgData.url;
+              } else if (imgData instanceof File || imgData instanceof Blob) {
+                imageUrl = URL.createObjectURL(imgData);
+              } else if (typeof imgData === "string") {
+                imageUrl = imgData;
+              } else {
+                console.warn("无法识别的图片数据格式");
+                return;
+              }
+
+              const base64 = await this.imageToBase64(imageUrl);
+              this.convertedBase64 = base64;
+
+              this.$forceUpdate();
+            } catch (error) {
+              console.error("图片转换失败:", error);
+              this.convertedBase64 = "/error-image.jpg";
+            }
+          },
+
+          imageToBase64(imageUrl) {
+            return new Promise((resolve, reject) => {
+              const img = new Image();
+              img.crossOrigin = "Anonymous"; // 处理跨域图片
+
+              img.onload = () => {
+                try {
+                  const canvas = document.createElement("canvas");
+                  const ctx = canvas.getContext("2d");
+
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+
+                  ctx.drawImage(img, 0, 0, img.width, img.height);
+
+                  let base64;
+                  if (imageUrl.toLowerCase().endsWith(".png")) {
+                    base64 = canvas.toDataURL("image/png");
+                  } else if (imageUrl.toLowerCase().endsWith(".webp")) {
+                    base64 = canvas.toDataURL("image/webp");
+                  } else {
+                    base64 = canvas.toDataURL("image/jpeg", 0.8);
+                  }
+
+                  resolve(base64);
+                } catch (error) {
+                  reject(error);
+                }
+              };
+
+              img.onerror = (error) => {
+                reject(new Error(`图片加载失败: ${error}`));
+              };
+
+              img.src = imageUrl;
+            });
+          },
+
+          async getImageListData() {
+            if (this.isLoading) return;
+            try {
+              this.isLoading = true;
+              this.$message({
+                message: "获取图片列表中...",
+                type: "info",
+              });
+
+              const resp = await axios.post("/ehs/getPictures/", { check_area_code: "" });
+              console.log(resp.data.data);
+              this.pictures = resp.data.data;
+              this.isLoading = false;
+              this.$message({
+                message: `成功获取${this.totalImages}张图片`,
+                type: "success",
+              });
+              return resp.data.data;
+            } catch (e) {
+              this.isLoading = false;
+              this.$message({
+                message: "获取图片列表失败",
+                type: "error",
+              });
+            }
+          },
+          async getImageList() {
+            if (this.isLoading) return;
+            try {
+              this.isLoading = true;
+              this.$message({
+                message: "获取图片列表中...",
+                type: "info",
+              });
+
+              const mockData = await this.getImageListData();
+              this.$message({
+                message: `成功获取图片列表`,
+                type: "success",
+              });
+              return mockData;
+            } catch (e) {
+              this.isLoading = false;
+              this.$message({
+                message: "获取图片列表失败",
+                type: "error",
+              });
+              return [];
+            }
+          },
+
+          handleUploadSuccess(response, file, fileList) {
+            this.$message({
+              message: "图片上传成功",
+              type: "success",
+            });
+
+            // 更新模块图片列表
+            const moduleId = file.data.moduleId;
+            const module = this.modules.find((m) => m.id === moduleId);
+            if (module) {
+              module.images.push({
+                name: file.name,
+                url: URL.createObjectURL(file.raw),
+                size: file.size,
+                selected: false,
+                loaded: true,
+              });
+              module.imgStatus = "active";
+              this.calculateStats();
+            }
+          },
+
+          beforeUpload(file) {
+            const isImage = file.type.includes("image");
+            const isLt5M = file.size / 1024 / 1024 < 5;
+
+            if (!isImage) {
+              this.$message.error("只能上传图片文件!");
+              return false;
+            }
+            if (!isLt5M) {
+              this.$message.error("图片大小不能超过5MB!");
+              return false;
+            }
+
+            return isImage && isLt5M;
+          },
+
+          deleteImage(moduleId, imgIndex) {
+            this.$confirm("确定要删除这张图片吗?", "提示", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning",
+            })
+              .then(() => {
+                const module = this.modules.find((m) => m.id === moduleId);
+                if (module) {
+                  module.images.splice(imgIndex, 1);
+                  if (module.images.length === 0) {
+                    module.imgStatus = "pending";
+                  }
+                  this.calculateStats();
+                  this.$message({
+                    type: "success",
+                    message: "删除成功!",
+                  });
+                }
+              })
+              .catch(() => {
+                this.$message({
+                  type: "info",
+                  message: "已取消删除",
+                });
+              });
+          },
+
+          handleCurrentChange(page) {
+            this.currentPage = page;
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

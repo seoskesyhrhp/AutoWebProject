@@ -1,0 +1,26 @@
+[
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPOP000223122500200",
+        "CheckAreaName": "综合二2楼扶梯",
+        "ct_code": "CT251120000025",
+        "CreateDate": "2025-11-21 08:30:01",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500200/_capture_62384.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500200/_capture_62384.jpg"
+        ]
+    },
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPOP000223122500141",
+        "CheckAreaName": "综合一B座1楼扶梯",
+        "ct_code": "CT251120000025",
+        "CreateDate": "2025-11-21 08:30:01",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500141/_capture.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500141/_capture.jpg"
+        ]
+    }
+]

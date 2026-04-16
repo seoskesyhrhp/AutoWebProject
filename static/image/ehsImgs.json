@@ -1,0 +1,65 @@
+[
+    {
+        "RPOP000223122900250": {
+            "CheckAreaCode": "RPOP000223122900250",
+            "ct_code": "CT251207000023",
+            "path": "_capture_20490.jpg"
+        }
+    },
+    {
+        "RPOP000223122900190": {
+            "CheckAreaCode": "RPOP000223122900190",
+            "ct_code": "CT251207000023",
+            "path": "compressed__capture_67645.jpg"
+        }
+    },
+    {
+        "RPOP000223122900132": {
+            "CheckAreaCode": "RPOP000223122900132",
+            "ct_code": "CT251207000023",
+            "path": "_capture_00194.jpg"
+        }
+    },
+    {
+        "RPOP000223122900070": {
+            "CheckAreaCode": "RPOP000223122900070",
+            "ct_code": "CT251207000023",
+            "path": "compressed__capture_63286.jpg"
+        }
+    },
+    {
+        "RPOP000223122900251": {
+            "CheckAreaCode": "RPOP000223122900251",
+            "ct_code": "CT251207000023",
+            "path": "_capture_36028.jpg"
+        }
+    },
+    {
+        "RPOP000223122900191": {
+            "CheckAreaCode": "RPOP000223122900191",
+            "ct_code": "CT251207000023",
+            "path": "_capture_75621.jpg"
+        }
+    },
+    {
+        "RPOP000223122900133": {
+            "CheckAreaCode": "RPOP000223122900133",
+            "ct_code": "CT251207000023",
+            "path": "compressed__capture_39541.jpg"
+        }
+    },
+    {
+        "RPOP000223122900071": {
+            "CheckAreaCode": "RPOP000223122900071",
+            "ct_code": "CT251207000023",
+            "path": "_capture.jpg"
+        }
+    },
+    {
+        "RPOP000223122900010": {
+            "CheckAreaCode": "RPOP000223122900010",
+            "ct_code": "CT251207000023",
+            "path": "_capture.jpg"
+        }
+    }
+]

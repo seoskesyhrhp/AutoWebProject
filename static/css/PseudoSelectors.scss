@@ -1,0 +1,27 @@
+$btnContent: " 查询", " 今天", " 显示用户", " 下 载", " 复制链接", " 后退", " 换源", " 刷新", " 清除缓存", " 获取缓存", " 在浏览器中打开", " 回到首页", " 退出", " 搜索", " ToAppSettings", " 停止定位", " 前一天", " 明天","登出";
+@for $i from 1 through length($btnContent) {
+  .el-item-button-#{$i} {
+    &::after {
+      @if nth($btnContent, $i) == " 下 载" {
+        content: " " attr(eldwnload) "";
+      } @else {
+        content: nth($btnContent, $i);
+      }
+    }
+  }
+}
+$elCol: "使用单位：", "维保时间：", "注册代码：", "电梯编号：", "维保人员：", "使用地址：";
+@for $i from 1 through length($elCol) {
+  .elCol-#{$i} {
+    &::before {
+      content: nth($elCol, $i);
+    }
+  }
+}
+@for $i from 1 through 2 {
+  .elScreen-#{$i} {
+    &::after {
+      content: " " attr(eltext) "";
+    }
+  }
+}

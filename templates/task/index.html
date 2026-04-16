@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>后台定时任务控制器</title>
+    <link rel="stylesheet" href="/static/ehs/css/bootstrap.min.css" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <script src="/static/upload/vue.js"></script>
+    <script src="/static/upload/index.js"></script>
+    <script src="/static/upload/axios.min.js"></script>
+    <script src="/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/js/js/jsbridge-mini.js" type="text/javascript"></script>
+    <script src="/static/fake-progress/index.js"></script>
+    <script src="/static/upload/eruda.min.js"></script>
+    <script src="/static/api/qrcode.min.js"></script>
+    <script src="/static/js/cdn_index.js" type="text/javascript"></script>
+    <script src="/static/js/unpkg_index.js" type="text/javascript"></script>
+    <script src="/static/video/js/pageStatus.js"></script>
+    <script src="/static/upload/js/dragAndDrop.js" type="text/javascript"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container-fluid {
+        position: relative;
+        z-index: 1;
+      }
+
+      .page-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        animation: slideDown 0.6s ease-out;
+      }
+
+      .page-header h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease-out;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+      }
+
+      .card-body {
+        padding: 2rem;
+      }
+
+      .form-control,
+      .form-select {
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        transform: translateY(-2px);
+      }
+
+      .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+      }
+
+      .task-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .task-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        transition: width 0.3s ease;
+      }
+
+      .task-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      }
+
+      .task-card:hover::before {
+        width: 100%;
+        opacity: 0.1;
+      }
+
+      .status-active {
+        border-left: 5px solid #28a745;
+      }
+
+      .status-active::before {
+        background: #28a745;
+      }
+
+      .status-paused {
+        border-left: 5px solid #ffc107;
+      }
+
+      .status-paused::before {
+        background: #ffc107;
+      }
+
+      .status-completed {
+        border-left: 5px solid #6c757d;
+      }
+
+      .status-completed::before {
+        background: #6c757d;
+      }
+
+      .status-inactive {
+        border-left: 5px solid #dc3545;
+      }
+
+      .status-inactive::before {
+        background: #dc3545;
+      }
+
+      .cron-field {
+        max-width: 120px;
+        border-radius: 8px;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .btn {
+        border-radius: 10px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+
+      .btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-outline-primary,
+      .btn-outline-success,
+      .btn-outline-warning,
+      .btn-outline-info,
+      .btn-outline-danger {
+        border-width: 2px;
+        font-weight: 600;
+      }
+
+      .btn-outline-primary:hover,
+      .btn-outline-success:hover,
+      .btn-outline-warning:hover,
+      .btn-outline-info:hover,
+      .btn-outline-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .badge {
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.3rem;
+      }
+
+      .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        border: none;
+      }
+
+      .alert {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        animation: slideInRight 0.5s ease-out;
+      }
+
+      .uuid-input-group {
+        position: relative;
+      }
+
+      .uuid-generate-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+      }
+
+      .uuid-generate-btn:hover {
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .uuid-input-group .form-control {
+        padding-right: 100px;
+        transition: transform 0.2s ease;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(100px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .refresh-btn {
+        animation: spin 1s linear;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .task-settings {
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 2px dashed rgba(102, 126, 234, 0.2);
+      }
+
+      .task-settings h6 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+
+      #statusChart {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: 140px;
+      }
+
+      [v-cloak] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="container-fluid py-4" v-cloak>
+      <div v-for="alert in alerts" :key="alert.id" class="alert alert-dismissible fade show" :class="`alert-${alert.type}`">
+        [[ alert.message ]]
+        <button type="button" class="btn-close" @click="dismissAlert(alert.id)"></button>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="page-header">
+            <h1 class="display-4 mb-0"><i class="fas fa-clock me-2"></i>后台定时任务控制器</h1>
+          </div>
+
+          <!-- 添加任务表单 -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>添加新任务</h5>
+            </div>
+            <div class="card-body">
+              <form @submit.prevent="handleSubmit">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="taskId" class="form-label">任务ID <i class="fas fa-fingerprint text-primary"></i></label>
+                    <div class="uuid-input-group">
+                      <input type="text" class="form-control" id="taskId" required readonly v-model="taskForm.task_id" />
+                      <button type="button" class="uuid-generate-btn" @click="resetTaskId" title="生成新的UUID"><i class="fas fa-sync-alt me-1"></i>重新生成</button>
+                    </div>
+                    <div class="form-text">
+                      <i class="fas fa-info-circle text-primary me-1"></i>
+                      自动生成的唯一标识符 (UUID v4)
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="taskName" class="form-label">任务名称</label>
+                    <input type="text" class="form-control" id="taskName" required v-model="taskForm.task_name" />
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <label for="taskDescription" class="form-label">任务描述</label>
+                    <textarea class="form-control" id="taskDescription" rows="2" v-model="taskForm.description"></textarea>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-4">
+                    <label for="taskType" class="form-label">任务类型</label>
+                    <select class="form-select" id="taskType" required v-model="taskForm.task_type">
+                      <option v-for="option in taskTypes" :key="option.value" :value="option.value">[[ option.label ]]</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Cron 任务设置 -->
+                <div class="task-settings" v-show="taskForm.task_type === 'cron'">
+                  <h6>Cron 表达式设置</h6>
+                  <div class="row g-2 mb-3">
+                    <div class="col-auto">
+                      <label class="form-label">分钟</label>
+                      <input type="text" class="form-control cron-field" id="minute" placeholder="0-59" v-model="taskForm.cron.minute" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">小时</label>
+                      <input type="text" class="form-control cron-field" id="hour" placeholder="0-23" v-model="taskForm.cron.hour" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">日</label>
+                      <input type="text" class="form-control cron-field" id="day" placeholder="1-31" v-model="taskForm.cron.day" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">月</label>
+                      <input type="text" class="form-control cron-field" id="month" placeholder="1-12" v-model="taskForm.cron.month" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">星期</label>
+                      <input type="text" class="form-control cron-field" id="dayOfWeek" placeholder="0-6 (0=周日)" v-model="taskForm.cron.dayOfWeek" />
+                    </div>
+                  </div>
+                  <div class="form-text">Cron表达式帮助: * 表示任何值, */5 表示每5个单位, 1,3,5 表示特定值, 1-5 表示范围</div>
+                </div>
+
+                <!-- 间隔任务设置 -->
+                <div class="task-settings" v-show="taskForm.task_type === 'interval'">
+                  <h6>间隔设置</h6>
+                  <div class="row g-2 mb-3">
+                    <div class="col-auto">
+                      <label class="form-label">周</label>
+                      <input type="number" class="form-control cron-field" id="weeks" min="0" v-model.number="taskForm.interval.weeks" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">天</label>
+                      <input type="number" class="form-control cron-field" id="days" min="0" v-model.number="taskForm.interval.days" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">小时</label>
+                      <input type="number" class="form-control cron-field" id="hours" min="0" v-model.number="taskForm.interval.hours" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">分钟</label>
+                      <input type="number" class="form-control cron-field" id="minutes" min="0" v-model.number="taskForm.interval.minutes" />
+                    </div>
+                    <div class="col-auto">
+                      <label class="form-label">秒</label>
+                      <input type="number" class="form-control cron-field" id="seconds" min="0" v-model.number="taskForm.interval.seconds" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 一次性任务设置 -->
+                <div class="task-settings" v-show="taskForm.task_type === 'date'">
+                  <h6>执行时间</h6>
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                      <label for="runDate" class="form-label">日期时间</label>
+                      <input type="datetime-local" class="form-control" id="runDate" required v-model="taskForm.date.runDate" />
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                  <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  <i v-else class="fas fa-plus me-1"></i>
+                  [[ isSubmitting ? "处理中..." : "添加任务" ]]
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- 任务列表 -->
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>任务列表</h5>
+              <button class="btn btn-sm btn-outline-light" @click="refreshTasks" title="刷新任务列表"><i class="fas fa-sync-alt me-1" :class="{ 'refresh-btn': isRefreshing }"></i> 刷新</button>
+            </div>
+            <div class="card-body">
+              <div>
+                <div v-if="isLoadingTasks" class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <p class="mt-2">加载任务中...</p>
+                </div>
+                <div v-else-if="taskList.length === 0" class="text-center py-4">
+                  <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                  <p class="text-muted">暂无任务</p>
+                </div>
+                <div v-else class="row">
+                  <div class="col-md-6 col-lg-4 mb-3" v-for="(task, index) in taskList" :key="task.task_id" :style="getCardAnimationDelay(index)">
+                    <div class="card task-card h-100" :class="getStatusClass(task.status)">
+                      <div class="card-body">
+                        <h5 class="card-title">[[ task.task_name ]]</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">ID: [[ task.task_id ]]</h6>
+                        <p class="card-text">[[ task.description || "无描述" ]]</p>
+
+                        <div class="mb-2">
+                          <span class="badge bg-secondary">[[ getTaskTypeText(task.task_type) ]]</span>
+                          <span class="badge" :class="getStatusBadgeClass(task.status)">[[ getStatusText(task.status) ]]</span>
+                        </div>
+
+                        <div class="small text-muted">
+                          <div><strong>下次运行:</strong> [[ formatDate(task.next_run) ]]</div>
+                          <div><strong>上次运行:</strong> [[ formatDate(task.last_run, "从未运行") ]]</div>
+                          <div><strong>运行次数:</strong> [[ task.run_count || 0 ]]</div>
+                        </div>
+                      </div>
+                      <div class="card-footer bg-transparent">
+                        <div class="btn-group w-100">
+                          <button class="btn btn-sm btn-outline-primary" @click="runTaskNow(task.task_id)">
+                            <i class="fas fa-play"></i>
+                          </button>
+                          <button v-if="task.status === 'active'" class="btn btn-sm btn-outline-warning" @click="pauseTask(task.task_id)">
+                            <i class="fas fa-pause"></i>
+                          </button>
+                          <button v-else class="btn btn-sm btn-outline-success" @click="resumeTask(task.task_id)">
+                            <i class="fas fa-play"></i>
+                          </button>
+                          <button class="btn btn-sm btn-outline-info" @click="viewTaskDetails(task.task_id)">
+                            <i class="fas fa-info"></i>
+                          </button>
+                          <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.task_id)">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal fade" id="taskModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">任务详情</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="taskModalBody"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+      import fileExtensions, { allFileExtensions, uniqueFileExtensions, fileExtensionUtils } from '/static/ehs/js/file-extensions.js';
+      console.log('总扩展名数量:', fileExtensionUtils.getStats(),fileExtensions,fileExtensionUtils,allFileExtensions);
+
+
+
+      new Vue({
+        el: "#app",
+        delimiters: ["[[", "]]"],
+        data() {
+          return {
+            taskForm: {
+              task_id: "",
+              task_name: "",
+              description: "",
+              task_type: "cron",
+              cron: {
+                minute: "0",
+                hour: "*",
+                day: "*",
+                month: "*",
+                dayOfWeek: "*",
+              },
+              interval: {
+                weeks: 0,
+                days: 0,
+                hours: 0,
+                minutes: 0,
+                seconds: 0,
+              },
+              date: {
+                runDate: "",
+              },
+            },
+            tasks: {},
+            isLoadingTasks: true,
+            isSubmitting: false,
+            isRefreshing: false,
+            alerts: [],
+            taskTypes: [
+              { value: "cron", label: "定时任务 (Cron)" },
+              { value: "interval", label: "间隔任务" },
+              { value: "date", label: "一次性任务" },
+            ],
+          };
+        },
+        computed: {
+          taskList() {
+            return Object.values(this.tasks || {});
+          },
+        },
+        mounted() {
+          this.initializeForm();
+          this.loadTasks();
+        },
+        methods: {
+          initializeForm() {
+            this.resetTaskId();
+            this.resetRunDate();
+          },
+          resetTaskId() {
+            this.taskForm.task_id = this.generateUUID();
+          },
+          resetRunDate() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            this.taskForm.date.runDate = now.toISOString().slice(0, 16);
+          },
+          generateUUID() {
+            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+              const r = (Math.random() * 16) | 0;
+              const v = c === "x" ? r : (r & 0x3) | 0x8;
+              return v.toString(16);
+            });
+          },
+          getCardAnimationDelay(index) {
+            const delay = index * 0.1;
+            return {
+              animation: `fadeInUp 0.6s ease-out ${delay}s both`,
+            };
+          },
+          getStatusClass(status) {
+            return `status-${status || "active"}`;
+          },
+          getStatusText(status) {
+            const statusMap = {
+              active: "运行中",
+              paused: "已暂停",
+              completed: "已完成",
+              inactive: "未激活",
+            };
+            return statusMap[status] || "未知";
+          },
+          getStatusBadgeClass(status) {
+            const classMap = {
+              active: "bg-success",
+              paused: "bg-warning",
+              completed: "bg-secondary",
+              inactive: "bg-danger",
+            };
+            return classMap[status] || "bg-secondary";
+          },
+          getTaskTypeText(type) {
+            const typeMap = {
+              cron: "定时任务",
+              interval: "间隔任务",
+              date: "一次性任务",
+            };
+            return typeMap[type] || "未知";
+          },
+          formatDate(value, fallback = "无") {
+            if (!value) return fallback;
+            try {
+              return new Date(value).toLocaleString();
+            } catch (error) {
+              return fallback;
+            }
+          },
+          async loadTasks() {
+            this.isLoadingTasks = true;
+            try {
+              const response = await fetch("/task/api/tasks");
+              const data = await response.json();
+              if (response.ok) {
+                this.tasks = data.tasks || {};
+              } else {
+                this.showAlert(`加载任务失败: ${data.detail}`, "danger");
+              }
+            } catch (error) {
+              this.showAlert(`加载任务失败: ${error.message}`, "danger");
+            } finally {
+              this.isLoadingTasks = false;
+            }
+          },
+          async refreshTasks() {
+            this.isRefreshing = true;
+            await this.loadTasks();
+            setTimeout(() => {
+              this.isRefreshing = false;
+            }, 1000);
+          },
+          buildPayload() {
+            const { task_id, task_name, description, task_type, cron, interval, date } = this.taskForm;
+            const payload = {
+              task_id,
+              task_name,
+              task_type,
+              description,
+            };
+            if (task_type === "cron") {
+              payload.minute = cron.minute;
+              payload.hour = cron.hour;
+              payload.day = cron.day;
+              payload.month = cron.month;
+              payload.day_of_week = cron.dayOfWeek;
+            } else if (task_type === "interval") {
+              payload.weeks = interval.weeks || 0;
+              payload.days = interval.days || 0;
+              payload.hours = interval.hours || 0;
+              payload.minutes = interval.minutes || 0;
+              payload.seconds = interval.seconds || 0;
+            } else if (task_type === "date") {
+              payload.run_date = new Date(date.runDate).toISOString();
+            }
+            return payload;
+          },
+          async handleSubmit() {
+            this.isSubmitting = true;
+            try {
+              const response = await fetch("/task/api/schedule/task", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(this.buildPayload()),
+              });
+              const data = await response.json();
+              if (response.ok) {
+                this.showAlert("任务添加成功!", "success");
+                this.resetForm();
+                await this.loadTasks();
+              } else {
+                this.showAlert(`添加任务失败: ${data.detail}`, "danger");
+              }
+            } catch (error) {
+              this.showAlert(`添加任务失败: ${error.message}`, "danger");
+            } finally {
+              this.isSubmitting = false;
+            }
+          },
+          resetForm() {
+            this.taskForm.task_name = "";
+            this.taskForm.description = "";
+            this.taskForm.task_type = "cron";
+            this.taskForm.cron = {
+              minute: "0",
+              hour: "*",
+              day: "*",
+              month: "*",
+              dayOfWeek: "*",
+            };
+            this.taskForm.interval = {
+              weeks: 0,
+              days: 0,
+              hours: 0,
+              minutes: 0,
+              seconds: 0,
+            };
+            this.resetTaskId();
+            this.resetRunDate();
+          },
+          async runTaskNow(taskId) {
+            await this.postAction("/task/api/task/run-now", { task_id: taskId }, "任务已触发立即执行!");
+          },
+          async pauseTask(taskId) {
+            await this.postAction(`/task/api/task/${taskId}/pause`, null, "任务已暂停!");
+          },
+          async resumeTask(taskId) {
+            await this.postAction(`/task/api/task/${taskId}/resume`, null, "任务已恢复!");
+          },
+          async deleteTask(taskId) {
+            if (!confirm("确定要删除这个任务吗？此操作不可撤销。")) {
+              return;
+            }
+            await this.postAction(`/task/api/task/${taskId}`, null, "任务已删除!", {
+              method: "DELETE",
+            });
+          },
+          async postAction(url, body, successMessage, options = {}) {
+            const fetchOptions = {
+              method: options.method || "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            };
+            if (body) {
+              fetchOptions.body = JSON.stringify(body);
+            }
+            try {
+              const response = await fetch(url, fetchOptions);
+              const data = await response.json();
+              if (response.ok) {
+                this.showAlert(successMessage, "success");
+                await this.loadTasks();
+              } else {
+                this.showAlert(`${successMessage.replace("已", "")}失败: ${data.detail}`, "danger");
+              }
+            } catch (error) {
+              this.showAlert(`操作失败: ${error.message}`, "danger");
+            }
+          },
+          async viewTaskDetails(taskId) {
+            try {
+              const response = await fetch(`/task/api/task/${taskId}`);
+              if (response.ok) {
+                const task = await response.json();
+                const detailsHtml = `
+                  <h6>${task.task_name}</h6>
+                  <p><strong>ID:</strong> ${task.task_id}</p>
+                  <p><strong>描述:</strong> ${task.description || "无"}</p>
+                  <p><strong>类型:</strong> ${this.getTaskTypeText(task.task_type)}</p>
+                  <p><strong>状态:</strong> <span class="badge ${this.getStatusBadgeClass(task.status)}">${this.getStatusText(task.status)}</span></p>
+                  <p><strong>创建时间:</strong> ${this.formatDate(task.created_time)}</p>
+                  <p><strong>下次运行:</strong> ${this.formatDate(task.next_run)}</p>
+                  <p><strong>上次运行:</strong> ${this.formatDate(task.last_run, "从未运行")}</p>
+                  <p><strong>运行次数:</strong> ${task.run_count || 0}</p>
+                `;
+                document.getElementById("taskModalBody").innerHTML = detailsHtml;
+                const modal = new bootstrap.Modal(document.getElementById("taskModal"));
+                modal.show();
+              } else {
+                const data = await response.json();
+                this.showAlert(`获取任务详情失败: ${data.detail}`, "danger");
+              }
+            } catch (error) {
+              this.showAlert(`获取任务详情失败: ${error.message}`, "danger");
+            }
+          },
+          showAlert(message, type) {
+            const id = this.generateUUID();
+            this.alerts.push({ id, message, type });
+            setTimeout(() => this.dismissAlert(id), 3000);
+          },
+          dismissAlert(id) {
+            this.alerts = this.alerts.filter((alert) => alert.id !== id);
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

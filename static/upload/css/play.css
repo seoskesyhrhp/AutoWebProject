@@ -1,0 +1,401 @@
+@font-face {
+  font-family: "listen1-icon";
+  src: url("fonts/listen1-icon.eot?4ftssm");
+  src: url("fonts/listen1-icon.eot?4ftssm#iefix") format("embedded-opentype"), url("fonts/listen1-icon.ttf?4ftssm") format("truetype"), url("fonts/listen1-icon.woff?4ftssm") format("woff"), url("fonts/listen1-icon.svg?4ftssm#listen1-icon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="li-"],
+[class*=" li-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: "listen1-icon" !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.li-play:before {
+  content: "\e900";
+}
+.li-previous:before {
+  content: "\e901";
+}
+.li-next:before {
+  content: "\e902";
+}
+.li-pause:before {
+  content: "\e903";
+}
+.li-random-loop:before {
+  content: "\e904";
+}
+.li-single-cycle:before {
+  content: "\e905";
+}
+.li-mute:before {
+  content: "\e906";
+}
+.li-volume:before {
+  content: "\e907";
+}
+.li-list:before {
+  content: "\e908";
+}
+.li-loop:before {
+  content: "\e909";
+}
+.li-del:before {
+  content: "\e90a";
+}
+.li-close:before {
+  content: "\e90b";
+}
+.li-back:before {
+  content: "\e90c";
+}
+.li-play-s:before {
+  content: "\e90d";
+}
+.li-collapse:before {
+  content: "\e90e";
+}
+.li-add:before {
+  content: "\e90f";
+}
+.li-advance:before {
+  content: "\e910";
+}
+.li-link:before {
+  content: "\e911";
+}
+.li-setting:before {
+  content: "\e912";
+}
+.li-songlist:before {
+  content: "\e913";
+}
+.li-featured-list:before {
+  content: "\e914";
+}
+
+.footer {
+  background: var(--foot-background-color);
+  display: flex;
+  position: fixed;
+  height: 60px;
+  width: 100%;
+  border-top: solid 1px var(--foot-border-color);
+  top: auto;
+  bottom: 0px;
+  z-index: 999;
+  overflow: hidden;
+}
+.footer .left-control .icon.play {
+  color: var(--player-icon-color);
+}
+.footer .left-control {
+  flex: 0 0 300px;
+  display: flex;
+  align-items: center;
+}
+.li-previous,
+.li-next {
+  color: var(--player-left-icon-color);
+}
+.icon {
+  font-size: 22px;
+  color: var(--player-left-icon-color);
+  margin: 0 13px;
+}
+.footer .main-info .cover {
+  height: 60px;
+  width: 60px;
+  object-fit: cover;
+  flex: 0 0 60px;
+  cursor: pointer;
+  position: relative;
+  color: #ffffff;
+}
+.footer .main-info .cover img {
+  height: 60px;
+  width: 60px;
+  object-fit: cover;
+}
+.footer .main-info .cover .mask {
+  display: none;
+}
+svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  cursor: pointer;
+  /* stroke: var(--icon-default-color); */
+}
+.footer .main-info .cover:hover .mask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+}
+.feather {
+  font-size: var(--text-default-size);
+  font-family: system-ui, "PingFang SC", STHeiti, sans-serif;
+  color: #ffffff;
+  -webkit-app-region: no-drag;
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  cursor: pointer;
+}
+.el-icon-arrow-up {
+  position: relative;
+  left: -13px;
+}
+.detail {
+  background-color: var(--detail);
+  transform: translateX(60px);
+  position: absolute;
+  top: 0;
+  left: 305px;
+  font-size: 16px;
+}
+.detail .icon {
+  font-size: 16px;
+  position: relative;
+  left: 105px;
+}
+.singer .ng-binding .songTitle {
+  font-size: 16px;
+  width: 50px;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+.singer .ng-binding {
+  position: relative;
+  left: 50px;
+  top: -18px;
+  width: 260px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.more-info .total {
+  font-size: 16px;
+  position: relative;
+  left: 320px;
+  top: -37px;
+  width: 40px;
+}
+div.singer > a:nth-child(2) {
+  display: none;
+}
+.more-info {
+  font-size: 16px;
+  position: relative;
+  left: 0px;
+  top: -15px;
+}
+.title {
+  width: 140px;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  /* left: 20px; */
+  top: -17px;
+}
+.ctrl {
+  position: relative;
+  left: 37px;
+}
+.cover:hover {
+  opacity: 0.8;
+  background-color: var(--sidebar-hover-background-color);
+}
+.marquee-content {
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+#progressBar {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  height: 6px;
+  /* width: 10%; */
+  background-color: green;
+}
+.footer .right-control {
+  position: absolute;
+  flex: 0 0 300px;
+  background: var(--foot-background-color);
+  display: flex;
+  align-items: center;
+  top: 30%;
+  left: 84%;
+}
+.volume-ctrl .li-mute {
+  width: 40px;
+  /* color: var(--player-left-icon-color); */
+}
+.slider-container {
+  position: relative;
+  text-align: center;
+  padding: 20px;
+  left: 20px;
+  top: -41px;
+}
+
+.slider {
+  width: 80%;
+}
+
+#sliderValue {
+  font-size: 20px;
+}
+
+.playlist-toggle {
+  position: relative;
+  top: -30px;
+}
+#sliderValue {
+  display: none;
+  position: relative;
+  left: 85px;
+  top: -44px;
+}
+.musicTable {
+  position: absolute;
+  top: 13%;
+  left: 10%;
+  width: 80%;
+  height: 540px;
+  /* color: violet 
+  #0000 透明*/
+  background-color: var(--line-default-color);
+  /* 圆角 */
+  border-radius: 10px;
+  /* transition: top 3s ease-in-out; */
+  animation: slideOutFromTop 3s ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes slideInFromTop {
+  0% {
+    top: 100%;
+  }
+  100% {
+    top: 13%;
+  }
+}
+@keyframes slideOutFromTop {
+  0% {
+    top: 13%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+div.musicTable > span:nth-child(1)::after {
+  content: "首";
+}
+div.musicTable > span:nth-child(1)::before {
+  content: "共";
+}
+.liDel {
+  display: contents;
+  position: relative;
+  left: 2%;
+  top: 3px;
+  color: var(--player-left-icon-color);
+}
+.li-del {
+  position: relative;
+  left: 2%;
+  top: 3px;
+  color: var(--player-left-icon-color);
+}
+.close {
+  position: relative;
+  left: 79%;
+  color: var(--player-left-icon-color);
+}
+.close:hover {
+  color: var(--player-icon-hover-color);
+}
+.liDel > .li-del:hover,
+.liDel:hover,
+.li-list:hover,
+.li-volume:hover,
+.li-mute:hover,
+.li-next:hover,
+.li-previous:hover {
+  color: var(--player-icon-hover-color);
+}
+
+.el-table__row:hover {
+  /* background-color: #0b9e52 !important; */
+}
+
+.marqee {
+  font-weight: bold;
+  font-style: italic;
+  font-size: 18px;
+  overflow: hidden;
+  white-space: nowrap;
+  outline: 1px dashed #9e9e9e80;
+  font-family: cursive;
+  border-radius: 4px;
+  animation: appear 0.1s;
+}
+
+.marqee[data-mul="true"] .text {
+  display: inline-block;
+  animation: move calc(var(--speed) * 3s) linear infinite;
+}
+
+.marqee[data-mul="true"] .text::after {
+  content: attr(title);
+  padding: 0 20px;
+}
+
+@keyframes appear {
+  to {
+    opacity: 0.99;
+  }
+}
+
+@keyframes move {
+  to {
+    transform: translateX(-50%);
+  }
+}

@@ -1,0 +1,145 @@
+class ResetData {
+  constructor(objData) {
+    this.objData = objData;
+    this.list = [
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "季度保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半年保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "季度保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "年保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "季度保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+      "半月保",
+    ];
+    this.requestData();
+  }
+
+  formatDate(date) {
+    const rawDate = new Date(date);
+    const year = rawDate.getFullYear();
+    const month = String(rawDate.getMonth() + 1).padStart(2, "0");
+    const day = String(rawDate.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  changeDate(dateValue) {
+    const formattedDate = this.formatDate(dateValue);
+    const firstHalfResults = this.derivationOfTheFirstHalfOfTheYear(formattedDate);
+    const secondHalfResults = this.derivationOfTheSecondHalfOfTheYear(formattedDate);
+    return firstHalfResults.concat(secondHalfResults);
+  }
+
+  derivationOfTheFirstHalfOfTheYear(date) {
+    let results = [];
+    for (let i = 0; i < 12; i++) {
+      const halfMonth = this.getLastDate(date, i * 14);
+      results.unshift(this.formatDate(halfMonth));
+    }
+    return results;
+  }
+
+  getLastDate(id, days = 14) {
+    const d = new Date(id);
+    d.setDate(d.getDate() - days);
+    const m = d.getMonth() + 1;
+    return `${d.getFullYear()}-${m}-${d.getDate()}`;
+  }
+
+  getNextDate(id, days = 14) {
+    const d = new Date(id);
+    d.setDate(d.getDate() + days);
+    const m = d.getMonth() + 1;
+    return `${d.getFullYear()}-${m}-${d.getDate()}`;
+  }
+
+  derivationOfTheSecondHalfOfTheYear(date) {
+    const rowDate = this.getNextDate(date);
+    let results = [];
+    for (let i = 0; i < 23; i++) {
+      const halfMonth = this.getNextDate(rowDate, i * 14);
+      results.push(this.formatDate(halfMonth));
+    }
+    return results;
+  }
+
+  getTypeName(vallist) {
+    const data = {};
+    const list = this.list;
+    for (let i = 0; i < vallist.length; i++) {
+      data[vallist[i]] = list[i];
+    }
+    return data;
+  }
+
+  formatString(dateString, interval) {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + interval);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  /*
+   * @ getDate -> 获取日期
+   * @ dateStr -> 日期字符串
+   * @ interval -> 间隔天数
+   * @ return -> 返回日期字符串
+   * @ example -> getDate('2021-01-01', 1) -> '2021-01-02'
+   * @param {String} -> String
+   * @param {Number} -> Number
+   * */
+  getDate(dateStr, interval) {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + interval);
+    return date.toISOString().slice(0, 10);
+  }
+
+  requestData() {
+    const objData = this.objData;
+    return objData.map((row, index) => {
+      const vallist = this.changeDate(row.CycleDateStr);
+      const typeobj = this.getTypeName(vallist);
+      let typeName = typeobj[row.nextDateStr];
+      if (!typeName) {
+        for (let i = -7; i <= 7; i++) {
+          typeName = typeobj[this.getDate(row.nextDateStr, i)];
+          if (typeName) {
+            break;
+          }
+        }
+      }
+      row["nexttypeName"] = typeName;
+      return row;
+    });
+  }
+}
+
+export default ResetData;

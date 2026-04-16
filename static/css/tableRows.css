@@ -1,0 +1,63 @@
+/* 表单样式 */
+.form-row-item > .el-form-item__content > .el-input-number {
+  position: absolute;
+  left: 25%;
+}
+
+.form-row-item > .el-form-item__content > .el-input {
+  position: absolute;
+  left: 25%;
+}
+.form-row-item {
+  margin-bottom: 18px;
+}
+
+.custom-input {
+  position: absolute;
+  left: 20%;
+}
+
+/* 底部按钮区 */
+.dialog-footer {
+  text-align: right;
+  padding: 15px 20px;
+  border-top: 1px solid #ebeef5;
+}
+
+.submit-btn {
+  padding: 10px 20px;
+  min-width: 100px;
+}
+
+.cancel-btn {
+  margin-right: 15px;
+  padding: 10px 20px;
+  min-width: 100px;
+}
+
+/*  */
+
+.reset-btn > i:hover {
+  /* 控制i标签旋转 */
+  transform: rotate(180deg);
+  transition: all 0.5s;
+  -webkit-transform: rotate(180deg);
+  -webkit-transition: all 0.5s;
+  -moz-transform: rotate(180deg);
+  -moz-transition: all 0.5s;
+}
+.reset-btn > i {
+  font-size: 24px;
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s;
+  -moz-transition: all 0.5s;
+}
+.rows-item {
+  position: absolute;
+  bottom: 0;
+  left: 81%;
+}
+.dialog-rows,
+.el-popper {
+  z-index: 9999 !important;
+}

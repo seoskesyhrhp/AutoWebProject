@@ -1,0 +1,48 @@
+server:
+  port: 8000
+  tomcat:
+    max-swallow-size: 200MB
+
+spring:
+  application:
+    name: autoweb-springboot
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 200MB
+  thymeleaf:
+    prefix: file:${app.project-root:../}/templates/
+    suffix: .html
+    mode: HTML
+    cache: false
+
+# 开发环境（默认）：Jar 在 springboot/ 下运行时，指向仓库根的 static/、templates/
+# 生产环境请启用 profile prod：java -jar app.jar --spring.profiles.active=prod
+app:
+  project-root: ../
+  skip-night-time-check: false
+
+ehs:
+  base-url: "https://ehs.sispark.com.cn:8443"
+  session-token: "ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl"
+  request-timeout-ms: 30000
+  data-root: "${user.dir}/data"
+  admin-config-path: "${user.dir}/data/json/ehsConfig.json"
+  check-task:
+    check-task-name: "独墅湖久亚电梯日常巡检0619(2025100801)"
+    check-names: "黄洪,查晓明,公共账号02"
+    check-task-id: 17554
+    company-code: "P0002"
+  delay:
+    short-delay-seconds: 1
+    default-delay-seconds: 4
+    default-delay-end-seconds: 60
+    error-delay-seconds: 1
+    long-delay-min-seconds: 90
+    long-delay-max-seconds: 130
+
+logging:
+  level:
+    com.ehs.web: INFO
+
+

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link data-type="index" href="/static/upload/index.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ehs/css/taskImg.css" />
+
+    <script src="/static/upload/vue.js"></script>
+    <script src="/static/upload/index.js"></script>
+    <script src="/static/upload/axios.min.js"></script>
+    <!-- <script src="/static/upload/eruda.min.js"></script> -->
+    <script src="/static/upload/eruda.js"></script>
+    <script src="/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/js/js/jsbridge-mini.js" type="text/javascript"></script>
+    <script src="/static/fake-progress/index.js"></script>
+
+    <style></style>
+
+    <title>巡检图片</title>
+  </head>
+  <body>
+    <div id="app" class="task-img-app">
+      <div class="task-img-layout">
+        <header class="task-img-header">
+          <div class="task-img-header-title">
+            <h1>巡检图片总览</h1>
+            <p>根据任务数据智能展示巡检影像</p>
+          </div>
+          <div class="task-img-header-meta">
+            <div class="meta-chip">
+              <span class="meta-chip-label">当前任务编码</span>
+              <span class="meta-chip-value">[[ stats.ct_code ]]</span>
+            </div>
+            <div class="meta-chip">
+              <span class="meta-chip-label">任务创建时间</span>
+              <span class="meta-chip-value">[[ stats.CreateDate ]]</span>
+            </div>
+          </div>
+        </header>
+
+        <section class="task-img-filters">
+          <div class="filter-left">
+            <span class="filter-label">巡检时间范围</span>
+            <div class="date-picker-tech date-select-wrapper">
+              <el-select v-model="dateSelect.start" placeholder="选择日期" size="small" clearable @change="onDateSelectChange">
+                <el-option v-for="d in availableDates" :key="d" :label="d" :value="d"> </el-option>
+              </el-select>
+            </div>
+          </div>
+          <div class="filter-left">
+            <span>任务编码搜索</span>
+            <el-input v-model="searchText" placeholder="请输入任务编码" size="small" clearable @change="onSearchChange" style="width: 260px">
+              <el-button slot="append" icon="el-icon-search" @click="onSearchChange">搜索</el-button>
+            </el-input>
+          </div>
+          <div class="filter-right">
+            <!-- loading状态 -->
+            <div v-if="loading" class="loading-container">
+              <div class="loading-spinner"></div>
+              <span class="loading-text">加载中...</span>
+            </div>
+
+            <!-- 数据展示 -->
+            <div v-else-if="availableDates.length > 0" class="stats-container">
+              <div class="stat-chip">
+                <span class="chip-label">任务数</span>
+                <span class="chip-value">[[ taskData.length ]]</span>
+              </div>
+              <div class="stat-chip">
+                <span class="chip-label">图片数</span>
+                <span class="chip-value">[[ filteredPhotoCards.length ]]</span>
+              </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-else class="empty-state">
+              <span class="empty-text">暂无数据</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="task-img-gallery">
+          <div v-if="filteredPhotoCards.length === 0" class="empty-state-tech">
+            <h3>暂无巡检图片</h3>
+            <p>请检查时间范围或确认该任务是否已上传巡检图片</p>
+            <!-- loading状态 -->
+            <div v-if="loading" class="loading-container">
+              <div class="loading-spinner"></div>
+              <span class="loading-text">加载中...</span>
+            </div>
+          </div>
+
+          <div v-else class="photo-grid-tech">
+            <div class="photo-card-tech" v-for="(card, index) in filteredPhotoCards" :key="index">
+              <div class="photo-thumb-wrap" @click="openPreview(index)">
+                <img class="photo-thumb" :src="`${baseUrl}${card.url}`" :alt="card.name" loading="lazy" />
+                <div class="photo-glow"></div>
+              </div>
+              <div class="photo-meta">
+                <div class="meta-row">
+                  <span class="meta-label">巡检区域</span>
+                  <span class="meta-value">[[ card.checkAreaName ]]</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">巡检时间</span>
+                  <span class="meta-value">[[ formatDate(card.checkStartDate) ]]</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">图片名称</span>
+                  <el-tooltip class="item" effect="dark" :content="card.name" placement="top">
+                    <span class="meta-value">[[ displayName(card.name) ]]</span>
+                  </el-tooltip>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">图片大小</span>
+                  <span class="meta-value">[[ formatFileSize(card.size) ]]</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- 图片全屏预览层 -->
+        <div v-if="previewVisible && currentPreviewCard" class="image-preview-overlay" @click.self="closePreview">
+          <button class="image-preview-close" @click.stop="closePreview">×</button>
+          <button class="image-preview-nav prev" @click.stop="prevImage">‹</button>
+          <div class="image-preview-content">
+            <img class="image-preview-img" :src="`${baseUrl}${currentPreviewCard.url}`" :alt="currentPreviewCard.name" loading="lazy" />
+          </div>
+          <button class="image-preview-nav next" @click.stop="nextImage">›</button>
+          <div class="image-preview-info">[[ previewIndex + 1 ]] / [[ filteredPhotoCards.length ]] · [[ currentPreviewCard.name ]]</div>
+        </div>
+      </div>
+    </div>
+    <script type="module">
+      new Vue({
+        el: "#app",
+        delimiters: ["[[", "]]"], // 修改Vue的模板分隔符
+        data() {
+          return {
+            baseUrl: "https://ehs.sispark.com.cn:8443",
+            searchText: "",
+            stats: {
+              ct_code: "",
+              CreateDate: "",
+              main_list: [],
+            },
+            rowData: [], // 存储任务数据
+            taskData: [], // 存储任务数据
+            // 日期选择范围
+            dateRange: [],
+            // 日期下拉选择
+            dateSelect: {
+              start: "",
+              end: "",
+            },
+            // 更新日期
+            dateRange: false,
+            // 图片预览
+            previewVisible: false,
+            loading: false,
+            previewIndex: 0,
+            photoCardsList: [],
+            asyncResult: [], // 存储异步请求的结果
+            originalDateData: [], // 存储原始日期数据以供调试
+            loadingPhotos: false,
+          };
+        },
+        mounted() {
+          this.taskMain();
+          this.getTaskDate();
+          // this.loading = true;
+        },
+        watch: {
+          taskData: {
+            immediate: true,
+            handler(newVal) {
+              if (Array.isArray(newVal)) {
+                this.processPhotos();
+              }
+            },
+          },
+        },
+        methods: {
+          onSearchChange() {
+            this.dateSelect.start = "";
+            const input = this.searchText;
+            console.log("输入值:", input);
+            if (input && input.length > 10 && input.includes("CT")) {
+              this.loading = this.dateRange = true;
+              this.taskData = this.photoCardsList = this.originalDateData = this.dateRange = [];
+              this.stats.ct_code = input;
+              setTimeout(() => {
+                this.taskList();
+              }, 1000);
+            } else {
+              this.$message.error("请输入正确的CT编号");
+            }
+          },
+          async getTaskDate() {
+            try {
+              const res = await axios.get("/ehs/json/");
+              console.log("日期数据响应:", res.data);
+              if (!res?.data?.data) {
+                throw new Error("Invalid response data structure");
+              }
+              const taskJson = res.data.data;
+              this.originalDateData = taskJson; // 存储原始数据以供调试
+              const dates = taskJson
+                .flatMap(
+                  (group) =>
+                    group
+                      .filter((item) => item?.now) // 过滤掉没有now属性的项目
+                      .map((item) => item.now), // 提取now值
+                )
+                .filter(
+                  (date, index, array) => array.indexOf(date) === index, // 去重
+                )
+                .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()); // 降序排序
+              // console.log("处理后的日期数据:", dates);
+              this.$message.success("日期数据加载成功");
+              this.asyncResult = dates;
+              return dates;
+            } catch (error) {
+              let errorMessage = "日期数据加载失败";
+              if (error.response) {
+                console.error("Server responded with error:", error.response.status, error.response.data);
+                errorMessage = `服务器错误: ${error.response.status}`;
+              } else if (error.request) {
+                console.error("No response received:", error.request);
+                errorMessage = "网络连接失败";
+              } else {
+                console.error("Request error:", error.message);
+                errorMessage = error.message || errorMessage;
+              }
+              this.$message.error(errorMessage);
+              return [];
+            }
+          },
+          async taskMain() {
+            try {
+              const res = await axios.post("/ehs/main/");
+              const result = res.data.data.data.Data;
+              if (result.length > 0) {
+                this.stats.main_list = result;
+                this.stats.ct_code = result[0].RecordCode;
+                this.stats.CreateDate = result[0].CreateDate;
+                this.$message.success("数据加载成功");
+                this.taskList();
+              } else {
+                this.$message.error("数据未加载到");
+              }
+            } catch (error) {
+              this.$message.error("数据加载失败");
+              console.error(error);
+            }
+          },
+          dataParsing(rowData) {
+            this.taskData = rowData.map((item) => {
+              return {
+                CheckAreaCode: item.CheckAreaCode,
+                CheckAreaName: item.CheckAreaName,
+                CheckStartDate: item.CheckStartDate,
+                Photos: item.Photos,
+                PhotoCnt: item.PhotoCnt,
+                Status: item.Status,
+                TemplateList: item.TemplateList,
+              };
+            });
+            if (this.dateRange) {
+              this.stats.CreateDate = this.taskData[0].TemplateList[0].CreateDate;
+            }
+          },
+          // 格式化日期显示
+          formatDate(value) {
+            if (!value) return "-";
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) {
+              return value;
+            }
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            const h = String(d.getHours()).padStart(2, "0");
+            const min = String(d.getMinutes()).padStart(2, "0");
+            return `${y}-${m}-${day} ${h}:${min}`;
+          },
+          // 格式化文件大小
+          formatFileSize(size) {
+            if (!size || size <= 0) return "-";
+            const units = ["B", "KB", "MB", "GB"];
+            let index = 0;
+            let cur = size;
+            while (cur >= 1024 && index < units.length - 1) {
+              cur /= 1024;
+              index++;
+            }
+            return `${cur.toFixed(1)}${units[index]}`;
+          },
+          async taskList() {
+            this.loading = true;
+            const detail_url = "/ehs/list/";
+            // {"CT260205000027": "2026-02-05"}
+            const payload = {
+              ct_code: this.stats.ct_code,
+              enableTest: false,
+            };
+            try {
+              const res = await axios.post(detail_url, payload);
+              const rowData = res.data.data;
+              if (rowData.length > 0) {
+                this.rowData = rowData;
+                this.$message.success("数据加载成功");
+                this.dataParsing(rowData); // 调用数据解析方法
+              } else {
+                this.$message.error("数据未加载到");
+              }
+            } catch (error) {
+              this.$message.error("数据加载失败");
+              console.error(error);
+            }
+          },
+          // 打开图片预览
+          openPreview(index) {
+            if (!this.filteredPhotoCards || !this.filteredPhotoCards.length) return;
+            const safeIndex = Number(index) || 0;
+            this.previewIndex = Math.min(Math.max(safeIndex, 0), this.filteredPhotoCards.length - 1);
+            this.previewVisible = true;
+          },
+          // 关闭图片预览
+          closePreview() {
+            this.previewVisible = false;
+          },
+          // 上一张
+          prevImage() {
+            if (!this.filteredPhotoCards || !this.filteredPhotoCards.length) return;
+            const total = this.filteredPhotoCards.length;
+            this.previewIndex = (this.previewIndex - 1 + total) % total;
+          },
+          // 下一张
+          nextImage() {
+            if (!this.filteredPhotoCards || !this.filteredPhotoCards.length) return;
+            const total = this.filteredPhotoCards.length;
+            this.previewIndex = (this.previewIndex + 1) % total;
+          },
+          // 日期下拉选择变化时，同步内部 dateRange，用于原有过滤逻辑
+          async onDateSelectChange() {
+            this.searchText = "";
+            this.dateRange = false;
+            const { start } = this.dateSelect;
+            if (start) {
+              // 单个日期选择时，视为当天范围
+              this.dateRange = [start, start];
+              if (this.originalDateData && this.originalDateData.length > 0) {
+                const rowData = this.dateFilteringBox(start, this.originalDateData);
+                if (rowData && rowData.length > 0) {
+                  this.$message.success(`日期: ${start} 数据加载成功中......`);
+                  this.stats.ct_code = rowData[0].RecordCode;
+                  this.stats.CreateDate = rowData[0].now;
+                  await this.taskList();
+                }
+              }
+            } else {
+              // 清空选择时，重置为不过滤
+              this.dateRange = [];
+            }
+          },
+          dateFilteringBox(date, data) {
+            return data
+              .flatMap((group) =>
+                group
+                  .filter((item) => item?.now === date) // 过滤出匹配日期的项目
+                  .map((item) => ({
+                    now: item.now || "",
+                    id: item.id || "",
+                    RecordCode: item.RecordCode || "",
+                    url: item.url || "",
+                    listurl: item.listurl || "",
+                    CheckAreaName: item.CheckAreaName || "",
+                    CheckStartDate: item.now || "",
+                  })),
+              )
+              .filter((item) => item.CheckStartDate); // 过滤掉没有有效日期的项
+          },
+          fileNameResolution(fileName) {
+            if (!fileName) return "";
+            return fileName.split("/").pop();
+          },
+          displayName(name) {
+            if (!name) return "";
+            const parts = name.split("-");
+            return parts[0] || name;
+          },
+          async getImageFileSize(url) {
+            const baseUrl = `${this.baseUrl}${url}`;
+            try {
+              const response = await fetch(baseUrl, { method: "HEAD" });
+              if (response.ok) {
+                const contentLength = response.headers.get("content-length");
+                if (contentLength) {
+                  return parseInt(contentLength);
+                }
+              }
+            } catch (error) {
+              console.log("HEAD请求失败，尝试完整请求");
+            }
+            try {
+              const response = await fetch(baseUrl);
+              const blob = await response.blob();
+              return blob.size;
+            } catch (error) {
+              throw new Error("无法获取文件大小");
+            }
+          },
+          async processPhotos() {
+            this.loadingPhotos = true;
+            const cards = [];
+
+            if (!Array.isArray(this.taskData)) {
+              this.photoCardsList = cards;
+              this.loadingPhotos = false;
+              return;
+            }
+
+            for (const task of this.taskData) {
+              if (!task?.Photos) continue;
+
+              const photos = Array.isArray(task.Photos) ? task.Photos : [task.Photos];
+
+              for (const [idx, photo] of photos.entries()) {
+                try {
+                  const size = await this.getImageFileSize(photo.Url);
+                  cards.push({
+                    url: photo?.url || photo?.preview || photo?.path || photo?.Url || "",
+                    name: photo?.name || photo?.fileName || photo?.FileName || this.fileNameResolution(photo.Url) || `图片${idx + 1}`,
+                    size: photo?.size || photo?.fileSize || photo?.FileSize || size || 0,
+                    checkAreaName: task.CheckAreaName || "",
+                    checkStartDate: task.CheckStartDate || "",
+                  });
+                } catch (error) {
+                  console.error("处理照片时出错:", error);
+                  continue;
+                }
+              }
+            }
+
+            this.photoCardsList = cards;
+            this.loadingPhotos = false;
+            this.loading = false;
+          },
+        },
+        computed: {
+          // 将任务数据中的图片打平为卡片数据，方便渲染
+          photoCards() {
+            return this.photoCardsList;
+          },
+          // 可选日期列表（基于已有巡检时间，按天去重）
+          availableDates() {
+            return this.asyncResult;
+          },
+          availableDatesOne() {
+            const set = new Set();
+            this.photoCards.forEach((card) => {
+              if (!card.checkStartDate) return;
+              const d = new Date(card.checkStartDate);
+              if (Number.isNaN(d.getTime())) return;
+              const y = d.getFullYear();
+              const m = String(d.getMonth() + 1).padStart(2, "0");
+              const day = String(d.getDate()).padStart(2, "0");
+              set.add(`${y}-${m}-${day}`);
+            });
+            console.log(Array.from(set));
+            return Array.from(set).sort();
+          },
+          // 根据日期选择过滤图片
+          filteredPhotoCards() {
+            if (!this.dateRange || this.dateRange.length !== 2) {
+              return this.photoCards;
+            }
+            const [start, end] = this.dateRange;
+            if (!start || !end) {
+              return this.photoCards;
+            }
+            const startTime = new Date(start);
+            const endTime = new Date(end);
+            if (Number.isNaN(startTime.getTime()) || Number.isNaN(endTime.getTime())) {
+              return this.photoCards;
+            }
+            startTime.setHours(0, 0, 0, 0);
+            endTime.setHours(23, 59, 59, 999);
+            return this.photoCards.filter((card) => {
+              if (!card.checkStartDate) return false;
+              const t = new Date(card.checkStartDate);
+              if (Number.isNaN(t.getTime())) return false;
+              return t.getTime() >= startTime.getTime() && t.getTime() <= endTime.getTime();
+            });
+          },
+          // 当前预览图片
+          currentPreviewCard() {
+            if (!this.filteredPhotoCards || !this.filteredPhotoCards.length || this.previewIndex < 0 || this.previewIndex >= this.filteredPhotoCards.length) {
+              return null;
+            }
+            return this.filteredPhotoCards[this.previewIndex];
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

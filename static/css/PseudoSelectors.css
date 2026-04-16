@@ -1,0 +1,106 @@
+@charset "UTF-8";
+.el-item-button-1::after {
+  content: " 查询";
+}
+
+.el-item-button-2::after {
+  content: " 今天";
+}
+
+.el-item-button-3::after {
+  content: " 显示用户";
+}
+
+.el-item-button-4::after {
+  content: " " attr(eldwnload) "";
+}
+
+.el-item-button-5::after {
+  content: " 复制链接";
+}
+
+.el-item-button-6::after {
+  content: " 后退";
+}
+
+.el-item-button-7::after {
+  content: " 换源";
+}
+
+.el-item-button-8::after {
+  content: " 刷新";
+}
+
+.el-item-button-9::after {
+  content: " 清除缓存";
+}
+
+.el-item-button-10::after {
+  content: " 获取缓存";
+}
+
+.el-item-button-11::after {
+  content: " 在浏览器中打开";
+}
+
+.el-item-button-12::after {
+  content: " 回到首页";
+}
+
+.el-item-button-13::after {
+  content: " 退出";
+}
+
+.el-item-button-14::after {
+  content: " 搜索";
+}
+
+.el-item-button-15::after {
+  content: " ToAppSettings";
+}
+
+.el-item-button-16::after {
+  content: " 停止定位";
+}
+
+.el-item-button-17::after {
+  content: " 前一天";
+}
+
+.el-item-button-18::after {
+  content: " 明天";
+}
+.el-item-button-19::after {
+  content: " 登出";
+}
+.elCol-1::before {
+  content: "使用单位：";
+}
+
+.elCol-2::before {
+  content: "维保时间：";
+}
+
+.elCol-3::before {
+  content: "注册代码：";
+}
+
+.elCol-4::before {
+  content: "电梯编号：";
+}
+
+.elCol-5::before {
+  content: "维保人员：";
+}
+
+.elCol-6::before {
+  content: "使用地址：";
+}
+
+.elScreen-1::after {
+  content: " " attr(eltext) "";
+}
+
+.elScreen-2::after {
+  content: " " attr(eltext) "";
+}

@@ -1,0 +1,46 @@
+# Maven local repository
+.m2/
+
+# Build output
+springboot/target/
+*.jar
+*.jar.original
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.py
+*.tmp
+*.swp
+*~
+
+# Large data files
+springboot/target/
+json/directory_structure_total.json
+json/large_file.json
+json/merged/large_file.json
+json/merged/merged.json
+static/docker/*.tar
+static/uploads/directory_structure_total.json
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Application directories (runtime)
+app/
+apps/
+utils/
+corn/
+static/fake-progress/

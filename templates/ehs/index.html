@@ -1,0 +1,2326 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>安全信息化平台</title>
+    <link rel="shortcut icon" href="/static/elevator.jpg" type="image/x-icon" />
+    <link data-type="index" href="/static/upload/index.css" rel="stylesheet" />
+    <link data-type="bootstrap" href="/static/upload/css/bootstrap-icons.min.css" rel="stylesheet" />
+    <link data-type="weather" href="/static/css/weather.css" rel="stylesheet" />
+    <link data-type="weather" href="/static/css/tableRows.css" rel="stylesheet" />
+    <link data-type="PseudoSelectors" href="/static/css/PseudoSelectors.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/upload/css/searchCss.css" />
+    <link rel="stylesheet" href="/static/ehs/css/all.min.css" />
+    <link rel="stylesheet" href="/static/ehs/css/index.css" />
+    <script src="/static/upload/js/attributeVerification.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="/static/upload/vue.js"></script>
+    <script src="/static/upload/index.js"></script>
+    <script src="/static/upload/axios.min.js"></script>
+    <script src="/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/js/js/jsbridge-mini.js" type="text/javascript"></script>
+    <script src="/static/fake-progress/index.js"></script>
+    <!-- <script src="/static/upload/eruda.min.js"></script> -->
+    <script src="/static/upload/eruda.js"></script>
+    <script src="/static/api/qrcode.min.js"></script>
+    <script src="/static/js/cdn_index.js" type="text/javascript"></script>
+    <script src="/static/js/unpkg_index.js" type="text/javascript"></script>
+    <script src="/static/video/js/pageStatus.js"></script>
+    <script src="/static/upload/js/dragAndDrop.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <div class="header">
+          <h1><i class="fas fa-shield-alt"></i> 安全信息化平台</h1>
+          <p>电梯巡检管理系统</p>
+          <p>[[ stats.CreateDate ]]</p>
+        </div>
+
+        <div class="dashboard">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #e0f2fe; color: #0369a1">
+              <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h3>巡检区域</h3>
+              <div class="value">[[ stats.areas ]]</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #fef3c7; color: #d97706">
+              <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-info">
+              <h3>巡检任务</h3>
+              <div class="value">[[ stats.templates ]]</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #dcfce7; color: #16a34a">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3>已完成</h3>
+              <div class="value">[[ stats.completed ]]</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #fee2e2; color: #dc2626">
+              <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3>待处理</h3>
+              <div class="value">[[ stats.pending ]]</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="message-square">
+          <div class="section-title"><i class="fas fa-list-ul"></i> 巡检任务列表</div>
+          <el-button class="test-status" type="primary" icon="el-icon-search" round @click="customizetomize">自定义</el-button>
+          <el-checkbox class="test-status" v-model="enableTest" @change="handleEnableTest">测试状态</el-checkbox>
+
+          <div class="controls">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" v-model="searchQuery" placeholder="搜索区域或模板名称..." />
+            </div>
+            <div class="filter-buttons">
+              <button class="filter-btn" :class="{ active: filterStatus === 'all' }" @click="filterStatus = 'all'">全部</button>
+              <button class="filter-btn" :class="{ active: filterStatus === 'completed' }" @click="filterStatus = 'completed'">已完成</button>
+              <button class="filter-btn" :class="{ active: filterStatus === 'pending' }" @click="filterStatus = 'pending'">待处理</button>
+            </div>
+          </div>
+
+          <div class="rim-grid" v-if="filteredGroups.length > 0">
+            <div class="rim-item" v-for="group in paginatedGroups" :key="randomColor()+group.CheckAreaCode">
+              <div class="rim-item-inner">
+                <div class="rim-left">
+                  <!-- :style="{ backgroundColor: group.color }" -->
+                  <span class="rim-left-text">[[ group.CheckAreaName ]]</span>
+                </div>
+
+                <div class="rim-middle">
+                  <div class="template-item" v-for="item in group.TemplateList" :key="randomColor()+item.CTCode">
+                    <div class="template-name">
+                      [[ item.TName ]]
+                      <span class="status-badge" :class="getStatusClass(item)"> [[ getStatusText(item) ]] </span>
+                    </div>
+                    <!--<div class="template-date">[[ formatDate(group.CheckStartDate) ]]</div>-->
+                    <div class="template-date">[[group.CheckStartDate]]</div>
+
+                    <div class="progress-container" v-if="shouldShowProgress(group, 'inspect')">
+                      <div class="progress-label">
+                        <span>巡检进度</span>
+                        <span>[[ calculateProgress(group, 'inspect') ]]%</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill progress-inspect" :style="{ width: calculateProgress(group, 'inspect') + '%' }"></div>
+                      </div>
+                    </div>
+
+                    <div class="progress-container" v-if="shouldShowProgress(group, 'submit')">
+                      <div class="progress-label">
+                        <span>提交进度</span>
+                        <span>[[ calculateProgress(group, 'submit') ]]%</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill progress-submit" :style="{ width: calculateProgress(group, 'submit') + '%' }"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <!--  v-if="group.PhotoCnt > 0" -->
+                  <div class="template-item">
+                    <div class="template-name">
+                      <el-button class="camera-item" type="text" icon="el-icon-camera-solid" size="medium" circle @click="faCamera(group)"></el-button>
+                      <!-- <i class="fas fa-camera"></i>  -->
+                      现场照片
+                      <span class="status-badge status-completed">[[ group.PhotoCnt ]]张</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rim-right">
+                  <button class="rim-btn rim-btn-primary" @click="onPrimaryGroup(group)"><i class="fas fa-search"></i> 巡检</button>
+                  <button class="rim-btn rim-btn-secondary" @click="onSecondaryGroup(group)"><i class="fas fa-paper-plane"></i> 提交</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state" v-else>
+            <i class="fas fa-inbox"></i>
+            <h3>暂无巡检任务</h3>
+            <p>当前没有符合条件的巡检任务</p>
+          </div>
+
+          <div class="pagination" v-if="filteredGroups.length > pageSize">
+            <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="page-btn" v-for="page in totalPages" :key="randomColor()+page" :class="{ active: currentPage === page }" @click="currentPage = page">[[ page ]]</button>
+            <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage++">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>安全信息化平台 &copy; 2025 | 保障电梯安全，提升管理效率</p>
+        </div>
+
+        <el-dialog :title="onSitePhotoManagement" :visible.sync="dialogVisible" width="90%" :before-close="handleClose" :close-on-click-modal="false" class="photo-dialog" top="5vh">
+          <div class="camera-menu">
+            <!-- 左侧在线图片栏 -->
+            <div class="camera-column camera-left">
+              <h2 class="section-title">
+                <i class="fas fa-cloud"></i>
+                在线照片 ([[ onlinePhotos.length ]])
+              </h2>
+
+              <div v-if="onlinePhotos.length > 0" class="photo-stats">
+                <div class="stat-item">
+                  <span class="stat-label">总数量</span>
+                  <span class="stat-value">[[ onlinePhotos.length ]]</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">已选择</span>
+                  <span class="stat-value">[[ selectedOnlineCount ]]</span>
+                </div>
+                <div class="stat-item">
+                  <el-button size="mini" type="primary" @click="selectAllPhotos('online')" :disabled="selectedOnlineCount === onlinePhotos.length"> 全选 </el-button>
+                  <el-button size="mini" type="default" @click="clearAllSelections" :disabled="selectedOnlineCount === 0"> 清空 </el-button>
+                </div>
+              </div>
+
+              <div v-if="onlinePhotos.length > 0" class="photo-grid">
+                <div class="camera-item" :class="{ selected: photo.selected }" v-for="(photo, index) in onlinePhotos" :key="'online-'+photo.id" @click="togglePhotoSelection(photo, 'online')">
+                  <div class="selection-box">
+                    <el-checkbox class="checkbox-item" v-model="photo.selected" @change="handleSelectChange(photo, 'online')" />
+                  </div>
+                  <div v-if="photo.loading" class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                  </div>
+                  <img id="onlineImg-faPhotos(photo)" :src="photo.url" alt="在线照片" @error="handleImageError(photo)" />
+                  <div class="photo-info">
+                    <span>[[ formatFileSize(photo.size) ]]</span>
+                    <span>[[ formatDateTime(photo.uploadTime) ]]</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="empty-state">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>暂无在线照片</h3>
+                <p>上传的照片将显示在这里</p>
+              </div>
+            </div>
+
+            <!-- 中部本地图片栏 -->
+            <div class="camera-column camera-center">
+              <h2 class="section-title">
+                <i class="fas fa-folder-open"></i>
+                本地照片 ([[ localPhotos.length ]])
+              </h2>
+
+              <div v-if="localPhotos.length > 0" class="photo-stats">
+                <div class="stat-item">
+                  <span class="stat-label">总数量</span>
+                  <span class="stat-value">[[ localPhotos.length ]]</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">已选择</span>
+                  <span class="stat-value">[[ selectedLocalCount ]]</span>
+                </div>
+                <div class="stat-item">
+                  <el-button size="mini" type="primary" @click="selectAllPhotos('local')" :disabled="selectedLocalCount === localPhotos.length"> 全选 </el-button>
+                  <el-button size="mini" type="default" @click="clearAllSelections" :disabled="selectedLocalCount === 0"> 清空 </el-button>
+                </div>
+              </div>
+
+              <div v-if="localPhotos.length > 0" class="photo-grid">
+                <div class="camera-item" :class="{ selected: photo.selected }" v-for="(photo, index) in localPhotos" :key="'local-'+photo.id" @click="togglePhotoSelection(photo, 'local')">
+                  <div class="selection-box">
+                    <el-checkbox class="checkbox-item" v-model="photo.selected" @change="handleSelectChange(photo, 'local')" />
+                  </div>
+                  <div v-if="photo.loading" class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                  </div>
+                  <img :src="photo.url || photo.preview" alt="本地照片" @error="handleImageError(photo)" />
+                  <div class="photo-info">
+                    <span>[[ formatFileSize(photo.size) ]]</span>
+                    <span>[[ photo.name ]]</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="empty-state">
+                <i class="fas fa-images"></i>
+                <h3>暂无本地照片</h3>
+                <p>选择或拖拽照片到右侧上传区域</p>
+              </div>
+            </div>
+
+            <!-- 右侧操作按钮栏 -->
+            <div class="camera-right">
+              <div class="action-section">
+                <!-- 上传区域 -->
+                <div class="upload-area" :class="{ dragover: isDragOver }" @dragover.prevent="handleDragOver" @dragleave.prevent="handleDragLeave" @drop.prevent="handleDrop">
+                  <el-upload class="upload-demo" ref="upload" drag action="/ehs/upload/" :on-preview="handlePreview" :on-remove="handleRemove" :file-list="fileList" :auto-upload="false" multiple :accept="'image/*'" :before-upload="beforeUpload">
+                    <i class="el-icon-upload" style="font-size: 48px; color: #667eea"></i>
+                    <div class="el-upload__text">将文件拖到此处，或<em>点击选择</em></div>
+                    <!-- <el-button style="margin-left: 10px" size="small" type="success" @click="submitUpload">上传到服务器</el-button> -->
+                    <div class="el-upload__tip">支持 JPG、PNG 格式，单个文件不超过 5MB</div>
+                  </el-upload>
+                </div>
+                <!-- 操作按钮 -->
+                <el-button class="action-btn btn-status" type="info" @click="closeDialog">
+                  <i class="fas fa-times"></i>
+                  关闭
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="primary" :loading="uploading" :disabled="!hasLocalPhotos" @click="handleUploadPhotos">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  上传到服务器
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="success" :disabled="!hasSelectedPhotos || isSyncingToEhs" @click="handleSynchronizeClick">
+                  <i class="fas fa-sync-alt"></i>
+                  同步到EHS巡检系统
+                  <el-progress :percentage="percentage" v-if="percentageStatus"></el-progress>
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="info" :disabled="hasLocalPhotos" @click="getLocalPhotos">
+                  <i class="fas fa-download"></i>
+                  下载到本地
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="success" :disabled="!hasSelectedPhotos" @click="handleLocalImg">
+                  <i class="fas fa-cogs"></i>
+                  本地照片处理
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="primary" @click="goWatermark">
+                  <i class="fas fa-tint"></i>
+                  EHS图片智能管理
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="success" :disabled="!hasSelectedPhotos" @click="handleBatchDownload">
+                  <i class="fas fa-download"></i>
+                  批量下载
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="info" :disabled="!hasSelectedPhotos" @click="handleBatchRename">
+                  <i class="fas fa-edit"></i>
+                  批量重命名
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="warning" :disabled="!hasSelectedPhotos" @click="handleBatchCompress">
+                  <i class="fas fa-compress"></i>
+                  批量压缩
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="warning" :disabled="!hasSelectedPhotos" @click="handlePreviewSelected">
+                  <i class="fas fa-eye"></i>
+                  预览选中
+                </el-button>
+
+                <el-button class="action-btn btn-status" type="danger" :disabled="!hasSelectedPhotos" @click="handleDeletePhotos">
+                  <i class="fas fa-trash"></i>
+                  删除选中
+                </el-button>
+              </div>
+
+              <!-- 统计信息 -->
+              <div class="photo-stats">
+                <div class="stat-item">
+                  <span class="stat-label">在线照片</span>
+                  <span class="stat-value">[[ onlinePhotos.length ]]</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">本地照片</span>
+                  <span class="stat-value">[[ localPhotos.length ]]</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">已选择</span>
+                  <span class="stat-value">[[ totalSelectedCount ]]</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">总大小</span>
+                  <span class="stat-value">[[ formatFileSize(totalSize) ]]</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-dialog>
+
+        <!-- 图片预览对话框 -->
+        <el-dialog title="图片预览" :visible.sync="previewVisible" width="80%" top="10vh" :close-on-click-modal="true">
+          <div class="image-preview-container">
+            <div class="preview-image-wrapper">
+              <canvas ref="previewCanvas" class="preview-image" style="display: none"></canvas>
+              <img ref="previewImg" :src="previewImage" alt="预览图片" class="preview-image" />
+            </div>
+
+            <!-- 水印日期选择器 -->
+            <div class="preview-date-picker">
+              <el-date-picker v-model="watermarkDate" type="datetime" placeholder="选择水印日期时间" format="yyyy-MM-dd HH:mm:ss" style="width: 240px" @change="onWatermarkDateChange" :editable="false"> </el-date-picker>
+            </div>
+
+            <div v-if="previewImages.length > 1" class="preview-navigation">
+              <el-button type="primary" icon="el-icon-arrow-left" @click="prevImage" :disabled="currentPreviewIndex === 0"> 上一张 </el-button>
+              <span class="preview-counter"> [[ currentPreviewIndex + 1 ]] / [[ previewImages.length ]] </span>
+              <el-button type="primary" icon="el-icon-arrow-right" @click="nextImage" :disabled="currentPreviewIndex === previewImages.length - 1"> 下一张 </el-button>
+            </div>
+            <div class="preview-actions">
+              <el-button type="primary" icon="el-icon-edit" @click="addWatermark" :disabled="!isCurrentPreviewLocal">添加水印</el-button>
+              <el-button type="warning" icon="el-icon-close" @click="removeWatermark" :disabled="!watermarkAdded">取消水印</el-button>
+              <el-button type="success" icon="el-icon-download" @click="downloadWatermarkedImage">下载图片</el-button>
+              <el-button type="primary" icon="el-icon-download" @click="exportWatermarkedImage">导出图片</el-button>
+            </div>
+          </div>
+        </el-dialog>
+        <el-dialog title="巡检任务" :visible.sync="ehs.ehsVisible" width="40%" top="10vh">
+          <form action="">
+            <el-input type="text" placeholder="请输入巡检任务" v-model="ehs.ehsValue" maxlength="15" clearable show-word-limit>
+              <el-button slot="append" icon="el-icon-search" type="primary" @click="submitEhs">提交</el-button>
+            </el-input>
+          </form>
+        </el-dialog>
+
+        <!-- 键盘快捷键提示 -->
+        <div class="keyboard-hint" :class="{ show: showKeyboardHints }">
+          <div>快捷键: Ctrl+A 全选 | Ctrl+D 清空 | Delete 删除 | Esc 关闭</div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import MemoryMonitor, { memoryMonitoring } from "/static/ehs/js/performanceMonitoring.js";
+      import { batchCompressPhotos, compressImageAdvanced } from "/static/ehs/js/imageFileCompression.js";
+
+      new Vue({
+        el: "#app",
+        delimiters: ["[[", "]]"],
+        data: {
+          enableTest: false, // 测试模式
+          dialogVisible: false,
+          onlineSelected: false,
+          localSelected: false,
+          stats: {
+            CreateDate: "",
+            ct_code: "",
+            areas: 41,
+            templates: 0, // 将在created中计算
+            completed: 0, // 将在created中计算
+            pending: 0, // 将在created中计算
+          },
+          ehs: {
+            ehsVisible: false,
+            ehsValue: "CT251106000024",
+          },
+          formData: {},
+          searchQuery: "",
+          filterStatus: "all",
+          onSitePhotoManagement: "📸 现场照片管理",
+          fontStyleSettings: "normal", // bold
+          cameraImage: "",
+          percentage: 0,
+          currentPage: 1,
+          pageSize: 12,
+          COLORS: ["#FDE68A", "#BFDBFE", "#C7D2FE", "#A7F3D0", "#FECACA", "#FBCFE8", "#FCD34D", "#93C5FD"],
+          edgeGroups: [], // 将在created中设置
+          onlinePhotos: [],
+          localPhotos: [],
+          fileList: [],
+          percentageStatus: false,
+          uploading: false,
+          // 同步到EHS相关状态
+          isSyncingToEhs: false,
+          lastSyncTime: 0,
+          syncThrottleInterval: 3000, // 同步节流间隔(毫秒)
+          isDragOver: false,
+          isFetchingPhotos: false,
+          previewVisible: false,
+          previewImage: "",
+          previewImages: [],
+          previewPhotoRefs: [], // 存储预览图片对应的原始照片引用
+          currentPreviewIndex: 0,
+          watermarkedImageUrl: "",
+          watermarkAdded: false,
+          watermarkTimer: null,
+          compressedBlob: null,
+          backupFiles: [],
+          latitude: 31.263788,
+          longitude: 120.731493,
+          watermarkDate: new Date(),
+          // 性能优化相关
+          imageCache: new Map(),
+          loadingStates: {
+            photos: false,
+            upload: false,
+            delete: false,
+          },
+          memoryMonitor: null,
+          previewImages: [],
+          // 用户设置
+          userSettings: {
+            autoUpload: false,
+            showImageInfo: true,
+            enableDragDrop: true,
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            enableBatchOperations: true,
+            showProgressBar: true,
+            enableKeyboardShortcuts: true,
+          },
+          // 键盘快捷键
+          keyboardShortcuts: {
+            "ctrl+a": "selectAll", // 全选
+            "ctrl+d": "deselectAll", // 清空
+            delete: "deleteSelected", // 删除选中项
+            escape: "closeDialog", // 关闭对话框
+          },
+          // 显示键盘提示
+          showKeyboardHints: false,
+          randomColor: () => {
+            return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+          },
+        },
+        computed: {
+          hasSelected() {
+            return [...this.onlinePhotos, ...this.localPhotos].some((p) => p.selected);
+          },
+          hasSelectedPhotos() {
+            return this.totalSelectedCount > 0;
+          },
+          hasLocalPhotos() {
+            return this.localPhotos.length > 0;
+          },
+          selectedOnlineCount() {
+            return this.onlinePhotos.filter((p) => p.selected).length;
+          },
+          selectedLocalCount() {
+            return this.localPhotos.filter((p) => p.selected).length;
+          },
+          totalSelectedCount() {
+            return this.selectedOnlineCount + this.selectedLocalCount;
+          },
+          totalSize() {
+            const onlineSize = this.onlinePhotos.reduce((sum, photo) => sum + (photo.size || 0), 0);
+            const localSize = this.localPhotos.reduce((sum, photo) => sum + (photo.size || 0), 0);
+            return onlineSize + localSize;
+          },
+          filteredGroups() {
+            let filtered = this.edgeGroups;
+
+            // 搜索过滤
+            if (this.searchQuery) {
+              const query = this.searchQuery.toLowerCase();
+              filtered = filtered.filter((group) => group.CheckAreaName.toLowerCase().includes(query) || group.TemplateList.some((template) => template.TName.toLowerCase().includes(query)));
+            }
+
+            // 状态过滤
+            if (this.filterStatus !== "all") {
+              filtered = filtered.filter((group) => {
+                if (this.filterStatus === "completed") {
+                  return group.Status === 20;
+                } else if (this.filterStatus === "pending") {
+                  return group.Status === 10;
+                }
+                return true;
+              });
+            }
+
+            return filtered;
+          },
+          totalPages() {
+            return Math.ceil(this.filteredGroups.length / this.pageSize);
+          },
+          paginatedGroups() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            const end = start + this.pageSize;
+            return this.filteredGroups.slice(start, end);
+          },
+          // 判断当前预览的照片是否是本地照片
+          isCurrentPreviewLocal() {
+            if (!this.previewPhotoRefs || this.previewPhotoRefs.length === 0) {
+              return false;
+            }
+            const currentRef = this.previewPhotoRefs[this.currentPreviewIndex];
+            return currentRef && currentRef.type === "local";
+          },
+        },
+        created() {
+          // 计算统计数据
+          // this.calculateStats();
+        },
+        mounted() {
+          this.reqableMainCode();
+          // if (jsBridge.inApp) eruda.init();
+
+          if (/Android|Adr/i.test(navigator.userAgent)) eruda.init();
+
+          // 初始化键盘快捷键
+          this.initKeyboardShortcuts();
+
+          // 初始化性能监控
+          memoryMonitoring.call(this);
+          // 初始化内存监控
+          this.memoryMonitor = new MemoryMonitor(this);
+
+          // 注册组件特定的清理回调
+          this.memoryMonitor.addCleanupCallback(() => {
+            return this.cleanupComponentSpecificData();
+          });
+
+          this.memoryMonitor.initPerformanceMonitoring();
+        },
+        beforeDestroy() {
+          // 组件销毁前进行彻底清理
+          if (this.memoryMonitor) {
+            this.memoryMonitor.forceCleanup();
+            this.memoryMonitor.stopMonitoring();
+          }
+        },
+        methods: {
+          customizetomize() {
+            this.ehs.ehsVisible = true;
+          },
+          async submitEhs() {
+            this.ehs.ehsVisible = false;
+            console.log("提交的巡检任务:", this.ehs.ehsValue);
+            await this.reqableMainList(this.ehs.ehsValue);
+            // await this.reqableMainList("CT260112000027");
+          },
+          cleanupComponentSpecificData() {
+            let cleaned = 0;
+            if (this.previewImages && this.previewImages.length > 0) {
+              this.previewImages.forEach((img) => {
+                if (img.src && img.src.startsWith("blob:")) {
+                  URL.revokeObjectURL(img.src);
+                  cleaned++;
+                }
+              });
+              this.previewImages = [];
+            }
+            if (this.imageCache) {
+              this.imageCache.clear();
+              cleaned++;
+            }
+
+            Object.keys(this).forEach((key) => {
+              if (this[key] && typeof this[key] === "object" && this[key].size > 100) {
+                this[key] = null;
+                cleaned++;
+              }
+            });
+
+            return cleaned > 0;
+          },
+          handleEnableTest() {
+            this.reqableMainCode();
+          },
+          // 文件上传相关方法
+          beforeUpload(file) {
+            if (!this.validateFile(file)) {
+              return false;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const photoData = {
+                id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: file.name,
+                size: file.size,
+                file: file,
+                url: e.target.result,
+                preview: e.target.result,
+                selected: false,
+                loading: false,
+                type: "local",
+                uploadTime: new Date().toISOString(),
+                watermarkStatus: false,
+              };
+              this.localPhotos.push(photoData);
+
+              this.$message.success(`照片 "${file.name}" 添加成功`);
+            };
+            reader.readAsDataURL(file);
+
+            return false; // 阻止自动上传
+          },
+
+          submitUpload() {
+            this.$refs.upload.submit();
+          },
+          formatFullDate(date = new Date()) {
+            const formatter = new Intl.DateTimeFormat("en-CA", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            }).format(date);
+            return formatter.replace(", ", " ");
+          },
+          handleRemove(file, fileList) {
+            console.log("移除文件:", file);
+            // 从本地照片列表中移除对应的照片
+            this.localPhotos = this.localPhotos.filter((photo) => photo.name !== file.name);
+          },
+
+          // 处理文件名的辅助函数
+          generateFileName(originalName, randomNum) {
+            return originalName.includes("_capture") ? `_capture_${randomNum}.jpg` : originalName;
+          },
+          generateRandomNumber() {
+            return Math.floor(Math.random() * 100000)
+              .toString()
+              .padStart(5, "0");
+          },
+
+          // 主处理函数
+          async handlePreview(file) {
+            // 生成随机数字符串的辅助函数
+            try {
+              if (!file?.raw) {
+                throw new Error("Invalid file object");
+              }
+
+              const randomNum = this.generateRandomNumber();
+              const url = URL.createObjectURL(file.raw);
+
+              // 设置预览图片
+              this.previewImage = url;
+              // this.previewVisible = true; // 暂时禁用预览功能，改为手动触发预览
+
+              // 处理上传前的操作
+              // await this.beforeUpload(file.raw);
+              this.beforeUpload(file.raw);
+
+              // 生成新的文件名
+              const filename = this.generateFileName(file.name, randomNum);
+
+              // 添加到备份文件列表
+              this.backupFiles.push({
+                name: filename,
+                url,
+                file: file.raw,
+              });
+
+              // 在组件销毁时记得释放 URL 对象
+              this.$once("hook:beforeDestroy", () => {
+                URL.revokeObjectURL(url);
+              });
+            } catch (error) {
+              console.error("Error in handlePreview:", error);
+              // 可以在这里添加错误提示
+              this.$message.error("文件预览处理失败");
+            }
+          },
+          handleDragOver(e) {
+            e.preventDefault();
+            this.isDragOver = true;
+          },
+
+          handleDragLeave(e) {
+            e.preventDefault();
+            this.isDragOver = false;
+          },
+
+          handleDrop(e) {
+            e.preventDefault();
+            this.isDragOver = false;
+
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach((file) => {
+              if (file.type.startsWith("image/")) {
+                this.beforeUpload(file);
+              }
+            });
+          },
+
+          // 照片选择和操作相关方法
+          togglePhotoSelection(photo, type) {
+            photo.selected = !photo.selected;
+            this.handleSelectChange(photo, type);
+          },
+
+          handleSelectChange(photo, type) {
+            console.log(`选择状态变更 (${type}):`, photo);
+
+            // 更新照片类型标记
+            photo.type = type;
+
+            // 更新选择统计
+            this.updateSelectionStats();
+
+            // 触发选择状态变化事件
+            this.$emit("photo-selection-changed", {
+              photo: photo,
+              type: type,
+              selected: photo.selected,
+              totalSelected: this.totalSelectedCount,
+            });
+          },
+
+          // 更新选择统计
+          updateSelectionStats() {
+            // 这个方法会被计算属性自动调用，但可以在这里添加额外的逻辑
+            console.log("选择统计更新:", {
+              onlineSelected: this.selectedOnlineCount,
+              localSelected: this.selectedLocalCount,
+              totalSelected: this.totalSelectedCount,
+            });
+          },
+
+          handleSelectPhotos() {
+            // 实现选择本地照片逻辑
+            console.log("选择照片");
+          },
+
+          handleImageError(photo) {
+            console.log("图片加载失败:", photo);
+            photo.loading = false;
+            this.$message.error("图片加载失败，请检查网络连接");
+          },
+
+          async handleUploadPhotos() {
+            if (this.localPhotos.length === 0) {
+              this.$message.warning("没有可上传的照片");
+              return;
+            }
+
+            this.uploading = true;
+
+            try {
+              const selectedPhotos = this.localPhotos.filter((p) => p.selected);
+              const photosToUpload = selectedPhotos.length > 0 ? selectedPhotos : this.localPhotos;
+
+              console.log("上传照片:", photosToUpload);
+
+              let successCount = 0;
+              for (let photo of photosToUpload) {
+                try {
+                  photo.loading = true;
+                  const result = await this.uploadPhoto(photo.file || photo._rawFile || photo);
+                  // 兼容不同服务端返回
+                  const respData = result && result.data ? result.data : {};
+                  const url = respData.url || (respData.data && respData.data.url) || photo.url;
+                  const id = respData.id || (respData.data && respData.data.id) || photo.id || `online_${Date.now()}`;
+
+                  this.onlinePhotos.push({
+                    id: id,
+                    name: photo.name,
+                    size: photo.size,
+                    url: url,
+                    selected: false,
+                    loading: false,
+                    uploadTime: new Date().toISOString(),
+                  });
+                  successCount++;
+                } catch (err) {
+                  this.uploading = false;
+                  console.error("单张上传失败:", err);
+                  this.$message.error(`${photo.name} 上传失败`);
+                } finally {
+                  this.backupFiles = [];
+                  photo.loading = false;
+                }
+              }
+
+              // 清空本地照片与选择
+              this.localPhotos = this.localPhotos.filter((p) => !photosToUpload.includes(p));
+              this.fileList = [];
+
+              if (successCount > 0) {
+                this.$message.success(`成功上传 ${successCount} 张照片`);
+              }
+            } catch (error) {
+              console.error("上传失败:", error);
+              this.$message.error("上传失败，请重试");
+            } finally {
+              this.uploading = false;
+            }
+          },
+
+          // 工具函数：规范化日期
+          normalizeDate(date) {
+            const newDate = new Date(date);
+            newDate.setHours(0, 0, 0, 0);
+            return newDate;
+          },
+
+          // 工具函数：验证必要参数
+          validateUploadParams(formData, stats) {
+            const requiredParams = {
+              CheckAreaCode: formData.CheckAreaCode,
+              ct_code: stats.ct_code,
+              CheckStartDate: formData.CheckStartDate,
+            };
+
+            const missingParams = Object.entries(requiredParams)
+              .filter(([_, value]) => !value)
+              .map(([key]) => key);
+
+            if (missingParams.length > 0) {
+              throw new Error(`缺少必要参数: ${missingParams.join(", ")}`);
+            }
+
+            return requiredParams;
+          },
+
+          // 主函数：同步到EHS
+          async synchronizeToEhs() {
+            try {
+              if (this.localPhotos.length === 0) {
+                this.$message.warning("没有可上传的照片");
+                return;
+              }
+
+              this.uploading = true;
+
+              // 先上传备份文件（如果有）
+              if (this.backupFiles && this.backupFiles.length > 0) {
+                // 使用 Promise.all 并行上传备份文件
+                await Promise.all(this.backupFiles.map((file) => this.uploadPhoto(file)));
+              }
+
+              this.hasSelectedPhotos = true;
+
+              // 过滤出已选中的照片，如果没有选中则默认全部
+              const photosToProcess = this.localPhotos.filter((photo) => photo.selected) || this.localPhotos;
+              // 过滤出带水印的照片
+              const validPhotos = photosToProcess.filter((photo) => photo.watermarkStatus);
+
+              if (validPhotos.length === 0) {
+                this.$message.warning("没有已添加水印的照片");
+                this.uploading = false;
+                return;
+              }
+
+              // 并行上传所有有效照片
+              await Promise.all(validPhotos.map((photo) => this.SaveObjectPhotos(photo.file, this.formData)));
+
+              this.$message.success("所有照片上传成功");
+              this.hasSelectedPhotos = false;
+              this.clearPreviewData();
+            } catch (error) {
+              console.error("批量上传失败:", error);
+              this.$message.error(error.message || "批量上传失败");
+            } finally {
+              this.uploading = false;
+            }
+          },
+          // 同步按钮点击处理（节流 + 禁用）
+          async handleSynchronizeClick() {
+            const now = Date.now();
+
+            // 已在进行中的同步，直接提示
+            if (this.isSyncingToEhs) {
+              this.$message.warning("正在同步，请稍候...");
+              return;
+            }
+
+            // 节流控制，防止频繁请求
+            if (now - this.lastSyncTime < this.syncThrottleInterval) {
+              this.$message.warning("操作过于频繁，请稍后再试");
+              return;
+            }
+
+            this.lastSyncTime = now;
+            this.isSyncingToEhs = true;
+
+            try {
+              await this.synchronizeToEhs();
+            } finally {
+              // 无论成功还是失败都恢复按钮状态
+              this.isSyncingToEhs = false;
+            }
+          },
+
+          // 上传单张照片
+          async SaveObjectPhotos(file, formData) {
+            const MAX_RETRIES = 3; // 最大重试次数
+            const TIMEOUT = 150000;
+            let retryCount = 0;
+
+            this.percentageStatus = true;
+
+            const uploadWithRetry = async () => {
+              this.percentage = 0; // 重置进度条
+              try {
+                // 验证日期
+                const today = this.normalizeDate(new Date());
+                const checkDate = this.normalizeDate(this.stats.CreateDate || formData.CheckStartDate);
+
+                console.log("verity", checkDate, JSON.parse(JSON.stringify(formData)), JSON.parse(JSON.stringify(this.stats)));
+
+                if (checkDate.getTime() !== today.getTime()) {
+                  throw new Error(`'${checkDate.getTime()}'检查日期必须为当天'${today.getTime()}'`);
+                }
+
+                // 验证参数
+                const params = this.validateUploadParams(formData, this.stats);
+                // 验证文件
+                const uploadFile = file || this.$refs.uploadInput?.files?.[0];
+                if (!uploadFile) {
+                  throw new Error("未找到要上传的文件");
+                }
+
+                const ImgData = await compressImageAdvanced(uploadFile, 1920, 0.6);
+                this.compressedBlob = ImgData.blob;
+                const form = new FormData();
+                form.append("object_code", JSON.stringify(params));
+                form.append("file", this.compressedBlob, ImgData.name);
+
+                // 创建axios实例配置
+                const axiosInstance = axios.create({
+                  timeout: TIMEOUT,
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                });
+
+                // 添加请求拦截器（可用于添加token等）
+                axiosInstance.interceptors.request.use(
+                  (config) => {
+                    console.log(`开始上传，尝试次数: ${retryCount + 1}`);
+                    return config;
+                  },
+                  (error) => {
+                    return Promise.reject(error);
+                  },
+                );
+
+                // 添加响应拦截器
+                axiosInstance.interceptors.response.use(
+                  (response) => response,
+                  (error) => {
+                    if (error.code === "ECONNABORTED") {
+                      throw new Error("请求超时，请检查网络连接");
+                    }
+                    return Promise.reject(error);
+                  },
+                );
+
+                // 执行上传
+                const response = await axiosInstance.post("/ehs/SaveObjectPhotos/", form, {
+                  onUploadProgress: (progressEvent) => {
+                    // 上传进度处理
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    this.percentage = percentCompleted;
+                    // 可以在这里触发进度更新事件
+                    this.$emit("upload-progress", percentCompleted);
+                  },
+                });
+
+                console.log("上传成功:", response.data);
+                this.percentageStatus = false;
+
+                // 单张上传成功后，清空预览相关数据
+                this.clearPreviewData();
+                return response.data;
+              } catch (error) {
+                // 如果是网络错误且未达到最大重试次数，则重试
+                if (this.isNetworkError(error) && retryCount < MAX_RETRIES) {
+                  retryCount++;
+                  console.warn(`网络错误，第${retryCount}次重试...`);
+
+                  // 指数退避策略：等待时间逐渐增加
+                  const delay = Math.pow(2, retryCount) * 1000;
+                  await this.delay(delay);
+
+                  return uploadWithRetry();
+                }
+
+                // 最终错误处理
+                const errorMessage = this.getErrorMessage(error);
+                console.error("上传失败:", errorMessage, error);
+                throw new Error(errorMessage);
+              } finally {
+                this.compressedBlob = null;
+              }
+            };
+
+            return uploadWithRetry();
+          },
+
+          // 辅助方法
+          isNetworkError(error) {
+            return !error.response && (error.code === "NETWORK_ERROR" || error.code === "ECONNABORTED" || error.message?.includes("Network Error") || error.message?.includes("网络错误"));
+          },
+
+          // 错误信息处理
+          getErrorMessage(error) {
+            if (error.response) {
+              // 服务器响应错误
+              const status = error.response.status;
+              switch (status) {
+                case 413:
+                  return "文件太大，请压缩后重新上传";
+                case 415:
+                  return "不支持的文件类型";
+                case 500:
+                  return "服务器内部错误，请稍后重试";
+                case 502:
+                case 503:
+                case 504:
+                  return "服务器暂时不可用，请稍后重试";
+                default:
+                  return `服务器错误: ${status}`;
+              }
+            } else if (error.request) {
+              // 请求已发出但无响应
+              return "网络连接失败，请检查网络设置";
+            } else {
+              // 其他错误
+              return error.message || "上传失败，请重试";
+            }
+          },
+
+          // 延迟函数
+          delay(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+          },
+          async fetchLocalPhotos(code) {
+            if (!code) {
+              this.$message.error("获取本地照片失败: 缺少必要的code参数");
+              return [];
+            }
+
+            try {
+              const resp = await axios.get(`/ehs/files/${code}`);
+              console.log("获取本地照片成功:", resp.data);
+              if (!resp.data.data || !resp.data.data.files) {
+                this.$message.error("获取本地照片成功但数据格式不正确");
+                return [];
+              }
+
+              return resp.data;
+            } catch (error) {
+              console.error("获取本地照片失败:", error);
+              this.$message.error("获取本地照片失败，请稍后重试");
+              return [];
+            }
+          },
+
+          async getLocalPhotos() {
+            this.isFetchingPhotos = true;
+
+            try {
+              const obj = this.formData;
+
+              if (!obj || !obj.CheckAreaCode) {
+                this.$message.error("获取本地照片失败: 缺少必要的CheckAreaCode");
+                this.$message.warning("请先填写检查区域代码");
+                return;
+              }
+
+              const CheckAreaCode = obj.CheckAreaCode;
+              const resp = await this.fetchLocalPhotos(CheckAreaCode);
+
+              if (resp && resp.data && resp.data.files) {
+                this.localPhotos = resp.data.files?.map((item, index) => ({
+                  id: item.id || `local_${Date.now()}_${index}`,
+                  name: item.name || `photo_${index}`,
+                  size: item.size || 0,
+                  url: item.path ? `/static/ehs/ehsImgs/${item.path}` : "",
+                  path: item.path,
+                  selected: false,
+                  loading: false,
+                  uploadTime: item.uploadTime ? this.formatDate(item.uploadTime) : new Date().toISOString(),
+                  type: "local", // 添加类型标识
+                }));
+
+                // 添加成功提示
+                this.$message.success(`成功获取 ${this.localPhotos.length} 张本地照片`);
+              } else {
+                this.localPhotos = [];
+                console.warn("获取本地照片成功但返回空数据");
+                this.$message.info("当前检查区域没有本地照片");
+              }
+            } catch (error) {
+              console.error("获取本地照片失败:", error);
+              this.localPhotos = [];
+              this.$message.error("获取本地照片失败，请联系管理员");
+            } finally {
+              this.isFetchingPhotos = false;
+            }
+          },
+
+          // 添加一个日期格式化辅助方法
+          formatDate(dateString) {
+            if (!dateString) return "";
+
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+
+            // 格式化日期为 YYYY-MM-DD HH:mm:ss
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}:${date
+              .getSeconds()
+              .toString()
+              .padStart(2, "0")}`;
+          },
+
+          // 实际上传单张图片到后端
+          async uploadPhoto(fileLike) {
+            console.log("上传图片:", fileLike);
+
+            // 规范化 File 对象
+            const file = fileLike instanceof File ? fileLike : fileLike.file || fileLike.raw || fileLike;
+            if (!file) {
+              throw new Error("无有效文件对象");
+            }
+
+            // 生成文件名
+            let fileName;
+            if (file.name && file.name.length > 3) {
+              const randomNum = this.generateRandomNumber();
+              fileName = this.generateFileName(file.name, randomNum);
+            } else {
+              fileName = `image_${Date.now()}.jpg`;
+            }
+
+            // 构造 FormData
+            const form = new FormData();
+            form.append("file", file, fileName);
+
+            // 附加业务字段
+            if (this.formData?.CheckAreaCode) {
+              form.append("check_area_code", this.formData.CheckAreaCode);
+            }
+            if (this.stats?.ct_code) {
+              form.append("ct_code", this.stats.ct_code);
+            }
+
+            // 设置请求头
+            const headers = {};
+            const csrf = this.getCsrfToken?.();
+            if (csrf) {
+              headers["X-CSRFToken"] = csrf;
+            }
+
+            try {
+              const response = await axios.post("/ehs/upload/", form, {
+                headers,
+                onUploadProgress: (e) => {
+                  // 这里可以扩展上传进度处理
+                },
+              });
+              return response;
+            } catch (error) {
+              throw error;
+            }
+          },
+          // 从 cookie 读取 CSRF（兼容 Django）
+          getCsrfToken() {
+            const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : "";
+          },
+
+          handleBatchDownload() {
+            const selectedPhotos = [...this.onlinePhotos, ...this.localPhotos].filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请先选择要下载的照片");
+              return;
+            }
+
+            console.log("批量下载照片:", selectedPhotos);
+            this.$message.success(`开始下载 ${selectedPhotos.length} 张照片`);
+            // 这里应该实现实际的下载逻辑
+          },
+
+          handlePreviewSelected() {
+            const selectedPhotos = [...this.onlinePhotos, ...this.localPhotos].filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请先选择要预览的照片");
+              return;
+            }
+
+            // 保存每个预览图片对应的原始照片引用
+            this.previewPhotoRefs = selectedPhotos.map((photo) => {
+              const isLocal = this.localPhotos.some((p) => p.id === photo.id);
+              const isOnline = this.onlinePhotos.some((p) => p.id === photo.id);
+              return {
+                photo: photo,
+                type: photo.type || (isLocal ? "local" : isOnline ? "online" : "unknown"),
+                index: isLocal ? this.localPhotos.findIndex((p) => p.id === photo.id) : this.onlinePhotos.findIndex((p) => p.id === photo.id),
+              };
+            });
+
+            this.previewImages = selectedPhotos.map((p) => p.url || p.preview);
+            this.previewImage = this.previewImages[0];
+            this.currentPreviewIndex = 0;
+            this.previewVisible = true;
+          },
+          // 关闭预览对话框
+          closeDialog() {
+            this.formData = {};
+            this.backupFiles = [];
+            this.dialogVisible = false;
+            this.percentageStatus = false;
+            this.onSitePhotoManagement = "📸 现场照片管理";
+            this.clearPreviewData();
+          },
+
+          async handleDeletePhotos() {
+            const selectedOnlineCount = this.selectedOnlineCount;
+            const selectedLocalCount = this.selectedLocalCount;
+
+            if (selectedOnlineCount === 0 && selectedLocalCount === 0) {
+              this.$message.warning("请先选择要删除的照片");
+              return;
+            }
+
+            try {
+              // 确认对话框
+              await this.$confirm(`确定要删除选中的 ${selectedOnlineCount + selectedLocalCount} 张照片吗？`, "确认删除", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning",
+              });
+
+              // 显示加载中
+              const loadingInstance = this.$loading({
+                lock: true,
+                text: "正在删除...",
+                spinner: "el-icon-loading",
+                background: "rgba(0, 0, 0, 0.7)",
+              });
+
+              try {
+                // 执行删除操作
+                await this.executeDeletePhotos();
+                this.$message.success("删除成功");
+              } finally {
+                loadingInstance.close();
+              }
+            } catch (error) {
+              if (error !== "cancel") {
+                console.error("删除失败:", error);
+                this.$message.error(error.message || "删除失败，请重试");
+              } else {
+                this.$message.info("已取消删除");
+              }
+            }
+          },
+
+          // 提取删除逻辑到单独的方法
+          async executeDeletePhotos() {
+            const deletePromises = [];
+            const selectedOnlinePhotos = this.onlinePhotos.filter((p) => p.selected);
+            const selectedLocalPhotos = this.localPhotos.filter((p) => p.selected);
+            const formData = this.formData;
+            const CheckAreaCode = formData?.CheckAreaCode;
+
+            // 收集所有需要删除的文件请求
+            [...selectedOnlinePhotos, ...selectedLocalPhotos].forEach((photo) => {
+              const filename = photo.filename || photo.name || photo.id;
+              if (filename) {
+                deletePromises.push(
+                  axios.delete(`/ehs/files/${CheckAreaCode}/${encodeURIComponent(filename)}`).catch((error) => {
+                    // 记录失败但继续其他删除操作
+                    console.error(`删除文件 ${filename} 失败:`, error);
+                    throw new Error(`文件 ${filename} 删除失败`);
+                  }),
+                );
+              }
+            });
+
+            // 执行所有删除请求
+            if (deletePromises.length > 0) {
+              await Promise.allSettled(deletePromises);
+
+              // 检查是否有失败的删除操作
+              const results = await Promise.allSettled(deletePromises);
+              const failedDeletes = results.filter((result) => result.status === "rejected");
+
+              if (failedDeletes.length > 0) {
+                throw new Error(`${failedDeletes.length} 个文件删除失败`);
+              }
+            }
+
+            // 更新前端数据
+            this.updateLocalData(selectedOnlinePhotos, selectedLocalPhotos);
+          },
+
+          // 更新本地数据
+          updateLocalData(selectedOnlinePhotos, selectedLocalPhotos) {
+            // 记录删除前的数据长度，用于后续检查
+            const originalOnlineCount = this.onlinePhotos.length;
+            const originalLocalCount = this.localPhotos.length;
+
+            // 更新在线照片
+            if (selectedOnlinePhotos.length > 0) {
+              this.onlinePhotos = this.onlinePhotos.filter((p) => !p.selected);
+            }
+
+            // 更新本地照片和文件列表
+            if (selectedLocalPhotos.length > 0) {
+              this.localPhotos = this.localPhotos.filter((p) => !p.selected);
+
+              // 同步更新 fileList
+              const deletedFilenames = selectedLocalPhotos.map((p) => p.filename || p.name);
+              this.fileList = this.fileList.filter((file) => {
+                const filename = file.name || file.filename;
+                return !deletedFilenames.includes(filename);
+              });
+            }
+
+            // 重置选中状态
+            this.resetSelection();
+
+            console.log(`删除完成: 在线照片 ${originalOnlineCount} -> ${this.onlinePhotos.length}, 本地照片 ${originalLocalCount} -> ${this.localPhotos.length}`);
+          },
+
+          // 重置选中状态
+          resetSelection() {
+            // 清除所有选中状态
+            this.onlinePhotos.forEach((p) => (p.selected = false));
+            this.localPhotos.forEach((p) => (p.selected = false));
+
+            // 重置计数器
+            this.$nextTick(() => {
+              this.selectedOnlineCount = 0;
+              this.selectedLocalCount = 0;
+            });
+          },
+          faCamera(group) {
+            console.log("group", group);
+            this.formData = group;
+            this.onlinePhotos = group.Photos;
+            this.dialogVisible = true;
+            const title = group.CheckAreaName;
+            this.onSitePhotoManagement = `📸 现场照片管理 - ${title}`;
+            // 初始化照片数据
+            this.initializePhotoData(group);
+          },
+
+          // 初始化照片数据
+          initializePhotoData(group) {
+            console.log("初始化照片数据:", group);
+
+            // 处理在线照片数据
+            this.onlinePhotos = [];
+            if (group.Photos && group.Photos.length > 0) {
+              this.onlinePhotos = group.Photos.map((photo, index) => ({
+                id: photo.id || `online-${index}`,
+                name: photo.Name || `photo-${index + 1}.jpg`,
+                size: photo.Size || 1024 * 1024 * (1 + Math.random() * 2), // 1-3MB
+                url: this.faPhotos(photo),
+                selected: false,
+                loading: false,
+                type: "online",
+                uploadTime: photo.UploadTime || new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+                originalData: photo, // 保存原始数据
+              }));
+            }
+
+            // 清空本地照片
+            this.localPhotos = [];
+            this.fileList = [];
+
+            console.log("在线照片初始化完成:", this.onlinePhotos.length);
+          },
+          formatDateTime(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            return date.toLocaleDateString("zh-CN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          },
+
+          // 图片预览相关方法
+          prevImage() {
+            if (this.currentPreviewIndex > 0) {
+              this.stopWatermarkUpdate();
+              this.currentPreviewIndex--;
+              this.previewImage = this.previewImages[this.currentPreviewIndex];
+              this.watermarkAdded = false;
+              this.watermarkedImageUrl = "";
+              // 恢复显示img，隐藏canvas
+              this.$nextTick(() => {
+                const elements = this.getWatermarkElements();
+                if (elements) {
+                  elements.img.style.display = "block";
+                  elements.canvas.style.display = "none";
+                }
+              });
+            }
+          },
+
+          nextImage() {
+            if (this.currentPreviewIndex < this.previewImages.length - 1) {
+              this.stopWatermarkUpdate();
+              this.currentPreviewIndex++;
+              this.previewImage = this.previewImages[this.currentPreviewIndex];
+              this.watermarkAdded = false;
+              this.watermarkedImageUrl = "";
+              // 恢复显示img，隐藏canvas
+              this.$nextTick(() => {
+                const elements = this.getWatermarkElements();
+                if (elements) {
+                  elements.img.style.display = "block";
+                  elements.canvas.style.display = "none";
+                }
+              });
+            }
+          },
+          // 启动水印更新定时器
+          startWatermarkUpdate() {
+            // 清除旧的定时器
+            if (this.watermarkTimer) {
+              clearInterval(this.watermarkTimer);
+            }
+
+            // 经纬度每5秒更新一次
+            this.watermarkTimer = setInterval(() => {
+              this.updateWatermark();
+            }, 5000);
+          },
+          // 添加水印
+          addWatermark() {
+            // 检查当前预览的照片是否是本地照片
+            if (!this.isCurrentPreviewLocal) {
+              this.$message.warning("在线照片不支持添加水印，请先下载到本地");
+              return;
+            }
+
+            this.$nextTick(() => {
+              const elements = this.getWatermarkElements();
+              if (!elements) {
+                this.$message.error("图片元素未找到");
+                return;
+              }
+
+              const { img, canvas } = elements;
+
+              // 初始化经纬度和日期
+              this.initializeWatermarkData();
+
+              const drawWatermark = () => {
+                this.drawWatermarkOnCanvas(img, canvas);
+                this.watermarkAdded = true;
+                this.$message.success("水印添加成功");
+              };
+
+              // 处理图片加载
+              img.complete ? drawWatermark() : (img.onload = drawWatermark);
+
+              // 启动定时更新
+              this.startWatermarkUpdate();
+            });
+          },
+
+          // 初始化水印数据
+          initializeWatermarkData() {
+            this.latitude = this.generateRandomLatitude();
+            this.longitude = this.generateRandomLongitude();
+            this.watermarkDate = new Date();
+          },
+
+          // 生成随机纬度
+          generateRandomLatitude() {
+            return 31.260001 + Math.random() * (31.269999 - 31.260001);
+          },
+
+          // 生成随机经度
+          generateRandomLongitude() {
+            return 120.700001 + Math.random() * (120.799999 - 120.700001);
+          },
+
+          // 获取图片和canvas元素（公共方法）
+          getWatermarkElements() {
+            const img = this.$refs.previewImg;
+            const canvas = this.$refs.previewCanvas;
+            if (!img || !canvas) {
+              return null;
+            }
+            return { img, canvas };
+          },
+
+          // 计算水印字体大小（公共方法）
+          calculateWatermarkFontSize(canvas) {
+            const baseSize = Math.max(canvas.width, canvas.height);
+            return Math.max(18, Math.floor(baseSize * 0.023));
+          },
+
+          // 在canvas上绘制水印（统一的水印绘制方法）
+          drawWatermarkOnCanvas(img, canvas) {
+            if (!img || !canvas) {
+              return;
+            }
+
+            // 设置canvas尺寸与图片相同
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            const ctx = canvas.getContext("2d");
+
+            // 绘制原始图片
+            ctx.drawImage(img, 0, 0);
+
+            // 设置水印样式
+            const fontSize = this.setupWatermarkStyle(ctx, canvas);
+
+            // 获取格式化的水印文本
+            const { line1, line2 } = this.getWatermarkText();
+
+            // 计算并绘制水印位置
+            this.drawWatermarkText(ctx, canvas, line1, line2, fontSize);
+
+            // 更新图片URL
+            this.watermarkedImageUrl = canvas.toDataURL("image/png");
+
+            // 切换显示
+            img.style.display = "none";
+            canvas.style.display = "block";
+          },
+
+          // 设置水印样式（返回字体大小供后续使用）
+          setupWatermarkStyle(ctx, canvas) {
+            const fontSize = this.calculateWatermarkFontSize(canvas);
+
+            ctx.fillStyle = "white";
+            ctx.font = `${this.fontStyleSettings} ${fontSize}px Arial, sans-serif`;
+            ctx.textAlign = "left";
+            ctx.textBaseline = "bottom";
+
+            return fontSize;
+          },
+
+          // 获取水印文本（统一的日期格式化方法）
+          getWatermarkText() {
+            const date = new Date(this.watermarkDate);
+            const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+
+            // 使用Intl.DateTimeFormat格式化日期
+            const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            });
+
+            const formattedDate = dateFormatter.format(date).replace(/\//g, "-");
+            const weekday = weekdays[date.getDay()];
+
+            return {
+              line1: `纬度:${this.latitude.toFixed(6)} 经度:${this.longitude.toFixed(6)}`,
+              line2: `${formattedDate} ${weekday}`,
+            };
+          },
+
+          // 绘制水印文本（优化：接收字体大小参数，避免重复计算）
+          drawWatermarkText(ctx, canvas, line1, line2, fontSize) {
+            const lineGap = Math.floor(fontSize * 0.5);
+            const adjustY = Math.floor(fontSize * 0.2);
+            const centerX = Math.floor(canvas.width / 2);
+            const bottomPadding = Math.floor(fontSize * 1.2);
+            const maxTextWidth = Math.max(ctx.measureText(line1).width, ctx.measureText(line2).width);
+            const padding = Math.floor(centerX - maxTextWidth / 2);
+
+            const y2 = canvas.height - bottomPadding + adjustY;
+            const y1 = y2 - (lineGap + fontSize) - adjustY;
+
+            ctx.fillText(line1, padding, y1);
+            ctx.fillText(line2, padding, y2);
+          },
+
+          // 更新水印
+          updateWatermark() {
+            if (!this.watermarkAdded) return;
+
+            const elements = this.getWatermarkElements();
+            if (!elements) return;
+
+            const { img, canvas } = elements;
+
+            // 更新经纬度（每5秒）
+            this.latitude = this.generateRandomLatitude();
+            this.longitude = this.generateRandomLongitude();
+
+            // 日期每3分钟更新一次
+            const now = new Date();
+            const minutesDiff = Math.floor((now - this.watermarkDate) / 60000);
+            if (minutesDiff >= 3) {
+              this.watermarkDate = new Date();
+            }
+
+            // 重新绘制水印
+            this.drawWatermarkOnCanvas(img, canvas);
+          },
+          // 停止水印更新
+          stopWatermarkUpdate() {
+            if (this.watermarkTimer) {
+              clearInterval(this.watermarkTimer);
+              this.watermarkTimer = null;
+            }
+          },
+
+          // 提取公共方法
+          async updateLocalPhotoWithWatermark() {
+            if (!this.watermarkAdded) {
+              this.$message.warning("请先添加水印");
+              return false;
+            }
+
+            const currentPhotoRef = this.previewPhotoRefs[this.currentPreviewIndex];
+            if (!currentPhotoRef || currentPhotoRef.type !== "local" || !currentPhotoRef.photo) {
+              return false;
+            }
+
+            try {
+              const blob = await this.dataURLToBlob(this.watermarkedImageUrl);
+              const fileName = currentPhotoRef.photo.name || `watermarked_${Date.now()}.png`;
+              const file = new File([blob], fileName, { type: "image/png" });
+              const previewUrl = URL.createObjectURL(blob);
+
+              const localPhotoIndex = this.localPhotos.findIndex((p) => p.id === currentPhotoRef.photo.id);
+              if (localPhotoIndex !== -1) {
+                this.localPhotos[localPhotoIndex] = {
+                  ...this.localPhotos[localPhotoIndex],
+                  url: previewUrl,
+                  preview: previewUrl,
+                  file,
+                  size: blob.size,
+                  name: `${fileName}-watermarked`,
+                  watermarkStatus: true,
+                };
+
+                this.previewImages[this.currentPreviewIndex] = previewUrl;
+                this.previewImage = previewUrl;
+                return true;
+              }
+              return false;
+            } catch (error) {
+              console.error("处理水印图片失败:", error);
+              this.$message.error("处理水印图片失败");
+              return false;
+            }
+          },
+
+          // 清空预览相关数据
+          clearPreviewData() {
+            // 停止水印定时器
+            this.stopWatermarkUpdate();
+            this.previewVisible = false;
+            this.previewImage = "";
+            this.previewImages = [];
+            this.previewPhotoRefs = [];
+            this.currentPreviewIndex = 0;
+            this.watermarkedImageUrl = "";
+            this.watermarkAdded = false;
+          },
+
+          // 导出带水印的图片
+          async exportWatermarkedImage() {
+            const success = await this.updateLocalPhotoWithWatermark();
+            if (success) {
+              this.previewVisible = false;
+              this.$message.success("水印图片已同步到本地照片");
+            }
+          },
+
+          // 下载带水印的图片
+          async downloadWatermarkedImage() {
+            const success = await this.updateLocalPhotoWithWatermark();
+            if (success) {
+              const link = document.createElement("a");
+              link.download = `watermarked_${Date.now()}.png`;
+              link.href = this.watermarkedImageUrl;
+              link.click();
+              this.$message.success("图片下载成功");
+            }
+          },
+
+          // 将 dataURL 转换为 Blob
+          dataURLToBlob(dataURL) {
+            return new Promise((resolve, reject) => {
+              try {
+                const arr = dataURL.split(",");
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                  u8arr[n] = bstr.charCodeAt(n);
+                }
+                const blob = new Blob([u8arr], { type: mime });
+                resolve(blob);
+              } catch (error) {
+                reject(error);
+              }
+            });
+          },
+
+          // 取消水印
+          removeWatermark() {
+            if (!this.watermarkAdded) {
+              this.$message.warning("当前没有水印可取消");
+              return;
+            }
+
+            // 停止水印更新定时器
+            this.stopWatermarkUpdate();
+
+            // 恢复显示原始图片
+            const elements = this.getWatermarkElements();
+            if (elements) {
+              elements.img.style.display = "block";
+              elements.canvas.style.display = "none";
+            }
+
+            // 重置水印相关状态
+            this.watermarkAdded = false;
+            this.watermarkedImageUrl = "";
+
+            this.$message.success("水印已取消");
+          },
+
+          // 水印日期变更处理
+          onWatermarkDateChange(date) {
+            // el-date-picker 返回的可能是 Date 对象或 null
+            if (!date) {
+              this.watermarkDate = new Date();
+              return;
+            }
+
+            // 确保是 Date 对象
+            if (date instanceof Date) {
+              this.watermarkDate = date;
+            } else if (typeof date === "string") {
+              this.watermarkDate = new Date(date);
+            } else {
+              this.watermarkDate = new Date();
+            }
+
+            // 如果已经添加了水印，重新绘制水印
+            if (this.watermarkAdded) {
+              this.$nextTick(() => {
+                const elements = this.getWatermarkElements();
+                if (elements) {
+                  this.drawWatermarkOnCanvas(elements.img, elements.canvas);
+                }
+              });
+            }
+          },
+
+          // 批量操作辅助方法
+          selectAllPhotos(type) {
+            if (type === "online") {
+              this.onlinePhotos.forEach((photo) => (photo.selected = true));
+            } else if (type === "local") {
+              this.localPhotos.forEach((photo) => (photo.selected = true));
+            }
+            this.updateSelectionStats();
+          },
+
+          clearAllSelections() {
+            this.onlinePhotos.forEach((photo) => (photo.selected = false));
+            this.localPhotos.forEach((photo) => (photo.selected = false));
+            this.updateSelectionStats();
+          },
+
+          // 获取选中照片的详细信息
+          getSelectedPhotosInfo() {
+            const selectedPhotos = [...this.onlinePhotos, ...this.localPhotos].filter((p) => p.selected);
+            return {
+              count: selectedPhotos.length,
+              totalSize: selectedPhotos.reduce((sum, photo) => sum + (photo.size || 0), 0),
+              photos: selectedPhotos,
+            };
+          },
+
+          // 验证文件类型和大小
+          validateFile(file) {
+            const isValidType = file.type.startsWith("image/");
+            const isValidSize = file.size <= this.userSettings.maxFileSize;
+
+            if (!isValidType) {
+              this.$message.error("只能上传图片文件!");
+              return false;
+            }
+
+            if (!isValidSize) {
+              this.$message.error(`文件大小不能超过 ${this.formatFileSize(this.userSettings.maxFileSize)}!`);
+              return false;
+            }
+
+            return true;
+          },
+
+          // 处理本地照片功能
+          handleLocalImg() {
+            if (this.localPhotos.length === 0) {
+              this.$message.warning("没有本地照片可以处理");
+              return;
+            }
+
+            const selectedLocalPhotos = this.localPhotos.filter((photo) => photo.selected);
+            const photosToProcess = selectedLocalPhotos.length > 0 ? selectedLocalPhotos : this.localPhotos;
+
+            this.$confirm(`确定要处理 ${photosToProcess.length} 张本地照片吗？`, "本地照片处理", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "info",
+            })
+              .then(() => {
+                this.processLocalPhotos(photosToProcess);
+              })
+              .catch(() => {
+                this.$message.info("已取消处理");
+              });
+          },
+
+          goWatermark() {
+            window.location.href = "/ehs/index"; // "watermark/";
+          },
+
+          // 处理本地照片的具体逻辑
+          async processLocalPhotos(photos) {
+            this.loadingStates.photos = true;
+
+            try {
+              console.log("开始处理本地照片:", photos);
+
+              // 模拟处理过程
+              for (let i = 0; i < photos.length; i++) {
+                const photo = photos[i];
+                photo.loading = true;
+
+                // 模拟处理延迟
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                console.log(`处理照片 ${i + 1}/${photos.length}:`, photo.name);
+
+                photo.loading = false;
+              }
+
+              this.$message.success(`成功处理 ${photos.length} 张照片`);
+            } catch (error) {
+              console.error("处理照片失败:", error);
+              this.$message.error("照片处理失败，请重试");
+            } finally {
+              this.loadingStates.photos = false;
+            }
+          },
+
+          // 批量重命名功能
+          handleBatchRename() {
+            const selectedPhotos = [...this.onlinePhotos, ...this.localPhotos].filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请先选择要重命名的照片");
+              return;
+            }
+
+            this.$prompt("请输入新的文件名前缀:", "批量重命名", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              inputPattern: /^[a-zA-Z0-9\u4e00-\u9fa5_-]+$/,
+              inputErrorMessage: "文件名只能包含字母、数字、中文、下划线和连字符",
+            })
+              .then(({ value }) => {
+                this.batchRenamePhotos(selectedPhotos, value);
+              })
+              .catch(() => {
+                this.$message.info("已取消重命名");
+              });
+          },
+
+          // 执行批量重命名
+          batchRenamePhotos(photos, prefix) {
+            photos.forEach((photo, index) => {
+              const extension = photo.name.split(".").pop();
+              const newName = `${prefix}_${String(index + 1).padStart(3, "0")}.${extension}`;
+              photo.name = newName;
+              console.log(`重命名: ${photo.originalName || photo.name} -> ${newName}`);
+            });
+
+            this.$message.success(`成功重命名 ${photos.length} 张照片`);
+          },
+
+          // 批量压缩功能
+          async handleBatchCompress() {
+            const selectedPhotos = [...this.onlinePhotos, ...this.localPhotos].filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请先选择要压缩的照片");
+              return;
+            }
+            const onlinePhotos = selectedPhotos.filter((p) => p.type === "online" || this.onlinePhotos.some((op) => op.id === p.id));
+            const localPhotos = selectedPhotos.filter((p) => p.type === "local" || this.localPhotos.some((lp) => lp.id === p.id));
+            if (onlinePhotos.length > 0 && localPhotos.length === 0) {
+              this.$message.warning("在线照片需要先下载到本地才能压缩");
+              return;
+            }
+
+            try {
+              await this.$confirm(`确定要压缩选中的 ${selectedPhotos.length} 张照片吗？`, "批量压缩", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning",
+              });
+
+              const photosToCompress = localPhotos.length > 0 ? localPhotos : selectedPhotos.filter((p) => p.file || p.raw);
+
+              if (photosToCompress.length === 0) {
+                this.$message.warning("没有可压缩的照片（需要本地文件）");
+                return;
+              }
+              console.log("开始批量压缩照片:", photosToCompress);
+              await batchCompressPhotos.call(this, photosToCompress, {
+                quality: 0.8,
+                maxWidth: 1920,
+                maxHeight: 1080,
+              });
+            } catch (error) {
+              if (error !== "cancel") {
+                console.error("压缩确认失败:", error);
+              }
+            }
+          },
+          // 格式化文件大小
+          formatFileSize(bytes) {
+            if (!bytes || bytes === 0) return "0 B";
+            const k = 1024;
+            const sizes = ["B", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+          },
+
+          // 初始化键盘快捷键
+          initKeyboardShortcuts() {
+            if (!this.userSettings.enableKeyboardShortcuts) return;
+
+            document.addEventListener("keydown", (e) => {
+              if (!this.dialogVisible) return;
+
+              const key = e.ctrlKey ? `ctrl+${e.key.toLowerCase()}` : e.key.toLowerCase();
+              console.log("键盘事件:", key, e.key);
+
+              // 显示快捷键提示
+              this.showKeyboardHints = true;
+              setTimeout(() => {
+                this.showKeyboardHints = false;
+              }, 2000);
+
+              switch (key) {
+                case "ctrl+a":
+                  e.preventDefault();
+                  this.selectAllPhotosInCurrentView();
+                  break;
+                case "ctrl+d":
+                  e.preventDefault();
+                  this.clearAllSelections();
+                  break;
+                case "delete":
+                  e.preventDefault();
+                  if (this.hasSelectedPhotos) {
+                    this.handleDeletePhotos();
+                  }
+                  break;
+                case "backspace":
+                  e.preventDefault();
+                  if (this.hasSelectedPhotos) {
+                    this.handleDeletePhotos();
+                  }
+                  break;
+                case "escape":
+                  e.preventDefault();
+                  this.dialogVisible = false;
+                  break;
+              }
+            });
+          },
+
+          // 选择当前视图中的所有照片
+          selectAllPhotosInCurrentView() {
+            // 根据当前焦点区域选择照片
+            const onlineCount = this.onlinePhotos.length;
+            const localCount = this.localPhotos.length;
+
+            if (onlineCount > 0 && localCount > 0) {
+              // 如果两个区域都有照片，让用户选择
+              this.$confirm("选择所有照片？", "批量选择", {
+                confirmButtonText: "在线照片",
+                cancelButtonText: "本地照片",
+                type: "info",
+              })
+                .then(() => {
+                  this.selectAllPhotos("online");
+                })
+                .catch(() => {
+                  this.selectAllPhotos("local");
+                });
+            } else if (onlineCount > 0) {
+              this.selectAllPhotos("online");
+            } else if (localCount > 0) {
+              this.selectAllPhotos("local");
+            }
+          },
+
+          // 懒加载图片
+          lazyLoadImage(img, src) {
+            const observer = new IntersectionObserver((entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  img.src = src;
+                  observer.unobserve(img);
+                }
+              });
+            });
+
+            observer.observe(img);
+          },
+
+          // 防抖函数
+          debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+              const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+              };
+              clearTimeout(timeout);
+              timeout = setTimeout(later, wait);
+            };
+          },
+
+          // 节流函数
+          throttle(func, limit) {
+            let inThrottle;
+            return function () {
+              const args = arguments;
+              const context = this;
+              if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => (inThrottle = false), limit);
+              }
+            };
+          },
+          async reqableMainCode() {
+            const url = "/ehs/main/";
+            const enableTest = this.enableTest; // 可以通过配置控制
+
+            try {
+              if (enableTest) {
+                console.log("当前请求模式: 测试模式",enableTest);                
+                // 测试模式：使用模拟数据
+                this.stats.ct_code = "CT260112000027";
+                await this.reqableMainList("CT260112000027");
+                // await this.loadTestData();
+                return;
+              }
+              console.log("当前请求模式: 生产模式",enableTest);
+              const response = await axios.post(url);
+              console.log("请求成功:", response.data);
+              this.stats.ct_code = response.data.data.data.Data[0].RecordCode;
+              this.stats.CreateDate = response.data.data.data.Data[0].CreateDate;
+              await this.reqableMainList(this.stats.ct_code);
+            } catch (error) {
+              this.stats.CreateDate = `当前日期:${this.formatFullDate()}`;
+              console.error("请求失败:", error);
+              this.$message.error("数据加载失败，请检查网络连接");
+            } finally {
+              // this.stats.CreateDate = `当前日期:${this.formatFullDate()}`;
+            }
+          },
+
+          async reqableMainList(ct_code, enableTest = false) {
+            const url = "/ehs/list/";
+            try {
+              const obj = {
+                ct_code: ct_code,
+                enableTest: enableTest,
+              };
+              const response = await axios.post(url, obj);
+              console.log("请求成功:", response.data);
+              this.edgeGroups = response.data.data;
+              this.calculateStats();
+            } catch (error) {
+              console.error("请求失败:", error);
+              this.$message.error("巡检数据加载失败");
+            }
+          },
+
+          // 加载测试数据
+          async loadTestData() {
+            console.log("加载测试数据...");
+
+            // 模拟加载延迟
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            // 生成测试数据
+            this.edgeGroups = this.generateTestData();
+            this.calculateStats();
+
+            this.$message.success("测试数据加载完成");
+          },
+
+          // 生成测试数据
+          generateTestData() {
+            const testGroups = [];
+            const areas = ["A区电梯", "B区电梯", "C区电梯", "D区电梯"];
+            const templates = ["日常检查", "月度维护", "季度检测", "年度保养"];
+
+            for (let i = 0; i < 8; i++) {
+              const group = {
+                CheckAreaCode: `area_${i + 1}`,
+                CheckAreaName: areas[i % areas.length],
+                CheckStartDate: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+                Status: Math.random() > 0.5 ? 20 : 10, // 随机状态
+                PhotoCnt: Math.floor(Math.random() * 10),
+                Photos: this.generateTestPhotos(3 + Math.floor(Math.random() * 5)),
+                TemplateList: templates.slice(0, 2 + Math.floor(Math.random() * 2)).map((template, index) => ({
+                  CTCode: `template_${i}_${index}`,
+                  TName: template,
+                  Status: Math.random() > 0.3 ? 20 : 10,
+                })),
+              };
+              testGroups.push(group);
+            }
+
+            return testGroups;
+          },
+
+          // 生成测试照片数据
+          generateTestPhotos(count) {
+            const photos = [];
+            for (let i = 0; i < count; i++) {
+              photos.push({
+                id: `test_photo_${Date.now()}_${i}`,
+                Url: `/test/images/photo_${i + 1}.jpg`,
+                Name: `测试照片_${i + 1}.jpg`,
+                Size: 1024 * 1024 * (1 + Math.random() * 2), // 1-3MB
+                UploadTime: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
+              });
+            }
+            return photos;
+          },
+          faPhotos(row) {
+            if (!row || !row.Url) {
+              console.log("照片数据无效:", row);
+              return "/static/images/placeholder.jpg"; // 返回占位图片
+            }
+
+            // 如果是测试数据，返回测试图片URL
+            if (row.Url.startsWith("/test/")) {
+              return `https://picsum.photos/400/300?random=${row.id || Math.random()}`;
+            }
+
+            // 生产环境图片URL
+            const imageUrl = `https://ehs.sispark.com.cn:8443${row.Url}`;
+            console.log("生成图片URL:", imageUrl);
+            return imageUrl;
+          },
+          calculateStats() {
+            this.stats.templates = this.edgeGroups.reduce((total, group) => total + group.TemplateList.length, 0);
+            this.stats.completed = this.edgeGroups.filter((group) => group.Status === 20).length;
+            this.stats.pending = this.edgeGroups.filter((group) => group.Status === 10).length;
+          },
+          onPrimaryGroup(group) {
+            console.log(`开始巡检: `, group);
+            this.dialogVisible = true;
+          },
+          onSecondaryGroup(group) {
+            console.log(`提交的巡检结果`, group);
+            this.dialogVisible = true;
+          },
+          getStatusClass(template) {
+            if (template.Status === 20) {
+              return "status-completed";
+            } else if (template.Status === 10) {
+              return "status-in-progress";
+            } else {
+              return "status-pending";
+            }
+          },
+          getStatusText(template) {
+            if (template.Status === 20) {
+              return "已完成";
+            } else if (template.Status === 10) {
+              return "进行中";
+            } else {
+              return "待处理";
+            }
+          },
+          // 格式化日期（只显示日期部分：年月日）
+          formatDate(dateString) {
+            if (!dateString) return "";
+            try {
+              const date = new Date(dateString);
+              if (isNaN(date.getTime())) {
+                return dateString.split(" ")[0];
+              }
+              return date.toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              });
+            } catch (error) {
+              return dateString.split(" ")[0];
+            }
+          },
+          shouldShowProgress(group, type) {
+            if (type === "inspect") {
+              return group.Status === 10 || group.Status === 20;
+            } else if (type === "submit") {
+              return group.Status === 10;
+            }
+            return false;
+          },
+          calculateProgress(group, type) {
+            if (type === "inspect") {
+              if (group.Status === 20) return 100;
+              if (group.Status === 10) return 50;
+              return 0;
+            } else if (type === "submit") {
+              if (group.Status === 20) return 100;
+              if (group.Status === 10) return 30;
+              return 0;
+            }
+            return 0;
+          },
+          handleClose(done) {
+            this.$confirm("确认关闭？")
+              .then((_) => {
+                this.closeDialog();
+                done();
+              })
+              .catch((_) => {});
+          },
+        },
+        watch: {
+          searchQuery() {
+            this.currentPage = 1;
+          },
+          filterStatus() {
+            this.currentPage = 1;
+          },
+          previewVisible(newVal) {
+            if (!newVal) {
+              this.stopWatermarkUpdate();
+              this.previewPhotoRefs = [];
+            }
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

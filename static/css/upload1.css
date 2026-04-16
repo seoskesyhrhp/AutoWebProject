@@ -1,0 +1,46 @@
+@font-face {
+    font-family: 'layui-icon';
+    src: url('/static/font/font/iconfont.eot?v=280');
+    src: url('/static/font/font/iconfont.eot?v=280#iefix') format('embedded-opentype'),
+    url('/static/font/font/iconfont.woff2?v=280') format('woff2'),
+    url('/static/font/font/iconfont.woff?v=280') format('woff'),
+    url('/static/font/font/iconfont.ttf?v=280') format('truetype'),
+    url('/static/font/font/iconfont.svg?v=280#layui-icon') format('svg');
+}
+.layui-upload{
+    display: block;
+    margin: 0;
+    text-align: center;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    line-height: 1.6;
+    color: #333;
+    color: rgba(0,0,0,.85);
+    font: 14px Helvetica Neue,Helvetica,PingFang SC,Tahoma,Arial,sans-serif;
+    padding: 50px 100px;
+}
+.layui-upload-drag {
+    position: relative;
+    display: inline-block;
+    padding: 30px;
+    border: 1px dashed #5a1414;
+    background-color: #fff;
+    text-align: center;
+    cursor: pointer;
+    color: #999;
+    margin: 0;
+    font-family: "layui-icon" !important;
+    font-size: 16px;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+}
+.layui-upload-drag .layui-icon{
+    font-size: 50px;
+    color: #16baaa;
+}
+.layui-icon{
+      font-family:"layui-icon" !important;
+      font-size: 16px;
+      font-style: normal;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+}

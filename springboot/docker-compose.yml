@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  autoweb-springboot:
+    build:
+      context: ..
+      dockerfile: springboot/Dockerfile
+    image: autoweb-springboot:latest
+    container_name: autoweb-springboot
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

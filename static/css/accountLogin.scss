@@ -1,0 +1,123 @@
+#eye {
+  position: relative;
+  color: #fff;
+  top: -28px;
+  left: 300px;
+  /* font-size: 18px; */
+}
+#m-login:disabled {
+  background: #a0cfff !important;
+  color: #000 !important;
+}
+#m-login:disabled:hover {
+  background: #66b1ff !important;
+  cursor: not-allowed !important;
+}
+
+#login {
+  /* width: 100vw; */
+  height: 60vh;
+  overflow: hidden;
+  /* position: relative; */
+  /* background-image: url("../assets/bgcolor.jpg"); */
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
+}
+
+#main {
+  height: 500px !important;
+  top: 100px !important;
+}
+
+#login-form {
+  position: absolute;
+  top: 355px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 460px;
+  height: 410px;
+  min-width: 300px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 15px;
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
+
+  h1 {
+    width: 60%;
+    margin: 50px auto 0;
+    color: #c1c1c1;
+    text-align: center;
+  }
+
+  input {
+    width: 60%;
+    margin: 0 auto;
+    outline: none;
+    border: none;
+    padding: 10px;
+    border-bottom: 1px solid #fff;
+    background: transparent !important;
+    color: white;
+  }
+
+  label {
+    width: 60%;
+    margin: 0 auto;
+    position: relative;
+    top: 30px;
+    left: -15px;
+  }
+  label i {
+    transition: all 0.5s ease;
+  }
+
+  div {
+    width: 80%;
+    margin: 10px auto;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+  }
+
+  button {
+    width: 340px;
+    height: 45px;
+    font-style: italic;
+    font-weight: 900;
+    font-size: 24px;
+    background-color: #409eff !important;
+    /* background-color: rgba(9, 108, 144, 0.5); */
+    margin: 10px 25px 40px 25px;
+  }
+
+  p {
+    width: 60%;
+    margin: 8px auto;
+    position: relative;
+    left: -15px;
+    color: #ff0000;
+    font-size: 8px;
+  }
+}
+input {
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out, width 1s ease-out !important;
+}
+.autolabel {
+  width: 370px !important;
+  position: relative;
+  top: 0 !important;
+}
+.autolabel label {
+  position: relative !important;
+  top: 0 !important;
+}
+.el-checkbox {
+  left: -60px !important;
+  width: fit-content !important;
+  color: #fff !important;
+}

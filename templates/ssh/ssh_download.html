@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SSH 文件下载</title>
+    <style>
+      #remotePath{
+        width: 800px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>指定远端文件并下载</h3>
+    <label>远程文件路径: <input id="remotePath" type="text" size="60" value="/usr/desktop/Webdemo/Djangodemo/music-master/static/log/log.log" autocomplete="on"/></label>
+    <button id="downloadBtn">下载</button>
+
+    <script>
+      document.getElementById("downloadBtn").addEventListener("click", async () => {
+        const remotePath = document.getElementById("remotePath").value;
+        if (!remotePath) {
+          alert("请输入远程文件路径");
+          return;
+        }
+
+        try {
+          const form = new FormData();
+          form.append("remotePath", remotePath);
+
+          const resp = await fetch("/ssh/download", { method: "POST", body: form });
+          if (!resp.ok) {
+            alert("下载失败: " + resp.status);
+            return;
+          }
+
+          const blob = await resp.blob();
+          // 从 Content-Disposition 提取文件名（容错）
+          const cd = resp.headers.get("Content-Disposition") || "";
+          let filename = "downloaded.file";
+          const m = cd.match(/filename="?(.*?)"?($|;)/);
+          if (m) filename = m[1];
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          alert("发生错误: " + e.message);
+        }
+      });
+    </script>
+  </body>
+</html>

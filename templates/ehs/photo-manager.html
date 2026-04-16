@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>照片管理与水印工具</title>
+    <link rel="shortcut icon" href="{% static 'elevator.jpg'%}" type="image/x-icon" />
+    <link data-type="index" href="{% static 'upload/index.css'%}" rel="stylesheet" />
+    <link data-type="bootstrap" href="{% static 'upload/css/bootstrap-icons.min.css'%}" rel="stylesheet" />
+    <link data-type="weather" href="{% static 'css/weather.css'%}" rel="stylesheet" />
+    <link data-type="weather" href="{% static 'css/tableRows.css'%}" rel="stylesheet" />
+    <link data-type="PseudoSelectors" href="{% static 'css/PseudoSelectors.css'%}" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'upload/css/searchCss.css'%}" />
+    <link rel="stylesheet" href="{% static 'ehs/css/all.min.css'%}" />
+    <link rel="stylesheet" href="{% static 'ehs/css/index.css'%}" />
+    <script src="{%static 'upload/js/attributeVerification.js'%}"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="{% static 'upload/vue.js'%}"></script>
+    <script src="{% static 'upload/index.js'%}"></script>
+    <script src="{% static 'upload/axios.min.js'%}"></script>
+    <script src="{% static 'js/jquery.min.js'%}" type="text/javascript"></script>
+    <script src="{% static 'js/js/jsbridge-mini.js'%}" type="text/javascript"></script>
+    <script src="{% static 'fake-progress/index.js'%}"></script>
+    <script src="{% static 'upload/eruda.min.js'%}"></script>
+    <script src="{% static 'api/qrcode.min.js'%}"></script>
+    <script src="{% static 'js/cdn_index.js'%}" type="text/javascript"></script>
+    <script src="{% static 'js/unpkg_index.js'%}" type="text/javascript"></script>
+    <script src="{% static 'video/js/pageStatus.js'%}"></script>
+    <script src="{% static 'upload/js/dragAndDrop.js'%}" type="text/javascript"></script>
+
+    <style>
+      /* 主容器样式 */
+      .photo-manager-container {
+        max-width: 1400px;
+        margin: 20px auto;
+        padding: 20px;
+      }
+
+      /* 标题区域 */
+      .header-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 24px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .header-section h1 {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .header-section p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 16px;
+      }
+
+      .back-btn {
+        /* position: absolute; */
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateX(-2px);
+      }
+
+      /* 水印控制面板 */
+      .watermark-controls {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      .wm-controls-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .wm-inputs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .wm-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 8px 12px;
+        transition: all 0.3s;
+      }
+
+      .wm-input:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .wm-input i {
+        color: #667eea;
+        width: 16px;
+      }
+
+      .wm-input input[type="date"],
+      .wm-input input[type="text"] {
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 14px;
+        color: #111827;
+        flex: 1;
+        width: 0;
+      }
+
+      .wm-input input[type="text"]::placeholder {
+        color: #9ca3af;
+      }
+
+      /* 照片管理区域 */
+      .photo-manager-section {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+
+      .photo-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-bottom: 2px solid #e5e7eb;
+      }
+
+      .photo-tab {
+        flex: 1;
+        padding: 16px;
+        text-align: center;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        font-size: 16px;
+        font-weight: 500;
+        color: #6b7280;
+        transition: all 0.3s;
+        position: relative;
+      }
+
+      .photo-tab:hover {
+        background: #e5e7eb;
+      }
+
+      .photo-tab.active {
+        color: #667eea;
+        background: white;
+      }
+
+      .photo-tab.active::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #667eea;
+      }
+
+      .photo-content {
+        padding: 24px;
+      }
+
+      /* 图片网格 */
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+      }
+
+      .photo-item {
+        position: relative;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+
+      .photo-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        border-color: #667eea;
+      }
+
+      .photo-item.selected {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+      }
+
+      .photo-item.loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .photo-checkbox {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 4px;
+        padding: 4px;
+      }
+
+      .photo-status {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 10;
+        background: rgba(76, 175, 80, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+      }
+
+      .photo-item img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .photo-info {
+        padding: 12px;
+        background: #f9fafb;
+        font-size: 12px;
+        color: #6c757d;
+      }
+
+      .photo-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+
+      .photo-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: #9ca3af;
+      }
+
+      /* 上传区域 */
+      .upload-area {
+        border: 2px dashed #cbd5e0;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        background: #f9fafb;
+        transition: all 0.3s;
+        margin-bottom: 24px;
+        cursor: pointer;
+      }
+
+      .upload-area:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+      }
+
+      .upload-area.dragover {
+        border-color: #667eea;
+        background: #e6f3ff;
+        transform: scale(1.02);
+      }
+
+      .upload-icon {
+        font-size: 64px;
+        color: #667eea;
+        margin-bottom: 16px;
+      }
+
+      .upload-text {
+        font-size: 16px;
+        color: #4a5568;
+        margin-bottom: 8px;
+      }
+
+      .upload-hint {
+        font-size: 14px;
+        color: #9ca3af;
+      }
+
+      /* 操作按钮组 */
+      .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .action-btn {
+        height: 48px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.3s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+        border: none;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+        border: none;
+      }
+
+      .btn-success:hover:not(:disabled) {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border: none;
+      }
+
+      .btn-warning:hover:not(:disabled) {
+        background: #d97706;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+      }
+
+      .btn-danger:hover:not(:disabled) {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-info {
+        background: #06b6d4;
+        color: white;
+        border: none;
+      }
+
+      .btn-info:hover:not(:disabled) {
+        background: #0891b2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+      }
+
+      /* 统计信息 */
+      .stats-bar {
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 24px;
+      }
+
+      .stat-item {
+        flex: 1;
+        text-align: center;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
+
+      .stat-value {
+        font-size: 20px;
+        font-weight: 600;
+        color: #667eea;
+      }
+
+      /* 空状态 */
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+      }
+
+      .empty-state i {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+
+      .empty-state h3 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        font-weight: 500;
+        color: #6b7280;
+      }
+
+      .empty-state p {
+        margin: 0;
+        font-size: 14px;
+      }
+
+      /* 加载状态 */
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 响应式 */
+      @media (max-width: 768px) {
+        .photo-manager-container {
+          padding: 12px;
+        }
+
+        .wm-inputs {
+          grid-template-columns: 1fr;
+        }
+
+        .photo-grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 12px;
+        }
+
+        .action-buttons {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-bar {
+          flex-direction: column;
+          gap: 8px;
+        }
+      }
+
+      /* 隐藏的文件输入 */
+      input[type="file"] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="photo-manager-container">
+        <!-- 标题区域 -->
+        <div class="header-section" style="position: relative">
+          <a href="/ehs/" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            返回首页
+          </a>
+          <h1>
+            <i class="fas fa-images"></i>
+            照片管理与水印工具
+          </h1>
+          <p>支持照片上传、水印添加和批量管理功能</p>
+        </div>
+
+        <!-- 水印控制面板 -->
+        <div class="watermark-controls">
+          <div class="wm-controls-title">
+            <i class="fas fa-cog"></i>
+            水印设置
+          </div>
+          <div class="wm-inputs">
+            <label class="wm-input">
+              <i class="fas fa-calendar"></i>
+              <input type="date" v-model="wmDate" @change="syncDateTimeFromDate" />
+            </label>
+            <label class="wm-input">
+              <i class="fas fa-clock"></i>
+              <input type="text" v-model="wmDateTime" placeholder="YYYY-MM-DD HH:mm:ss" @input="onWatermarkChange" />
+            </label>
+            <label class="wm-input">
+              <i class="fas fa-location-dot"></i>
+              <input type="text" v-model="lat" placeholder="纬度" @input="onWatermarkChange" />
+            </label>
+            <label class="wm-input">
+              <i class="fas fa-location-crosshairs"></i>
+              <input type="text" v-model="lng" placeholder="经度" @input="onWatermarkChange" />
+            </label>
+          </div>
+          <div class="stats-bar">
+            <div class="stat-item">
+              <div class="stat-label">原图总数</div>
+              <div class="stat-value">[[ originalPhotos.length ]]</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">水印照片数</div>
+              <div class="stat-value">[[ watermarkedPhotos.length ]]</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">已选择</div>
+              <div class="stat-value">[[ totalSelected ]]</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">总大小</div>
+              <div class="stat-value">[[ formatFileSize(totalSize) ]]</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 照片管理区域 -->
+        <div class="photo-manager-section">
+          <div class="photo-tabs">
+            <button class="photo-tab" :class="{ active: activeTab === 'original' }" @click="activeTab = 'original'"><i class="fas fa-image"></i> 原图 ([[ originalPhotos.length ]])</button>
+            <button class="photo-tab" :class="{ active: activeTab === 'watermarked' }" @click="activeTab = 'watermarked'"><i class="fas fa-copyright"></i> 水印照片 ([[ watermarkedPhotos.length ]])</button>
+          </div>
+
+          <div class="photo-content">
+            <!-- 上传区域 -->
+            <div class="upload-area" @click="$refs.fileInput.click()" @dragover.prevent="handleDragOver" @dragleave.prevent="handleDragLeave" @drop.prevent="handleDrop" :class="{ dragover: isDragOver }">
+              <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+              </div>
+              <div class="upload-text">点击或拖拽照片到此处上传</div>
+              <div class="upload-hint">支持 JPG、PNG 格式，单个文件不超过 5MB</div>
+            </div>
+            <input ref="fileInput" type="file" accept="image/*" multiple @change="handleFileSelect" />
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+              <button class="action-btn btn-success" :disabled="!hasSelected" @click="addWatermarkToSelected">
+                <i class="fas fa-tint"></i>
+                添加水印
+              </button>
+              <button class="action-btn btn-primary" :disabled="!hasSelected" @click="uploadSelected">
+                <i class="fas fa-cloud-upload-alt"></i>
+                上传原图
+              </button>
+              <button class="action-btn btn-primary" :disabled="!hasWatermarkedSelected" @click="uploadWatermarkedSelected">
+                <i class="fas fa-cloud-upload-alt"></i>
+                上传水印图
+              </button>
+              <button class="action-btn btn-warning" :disabled="!hasWatermarkedSelected" @click="downloadWatermarkedSelected">
+                <i class="fas fa-download"></i>
+                下载水印图
+              </button>
+              <button class="action-btn btn-info" :disabled="!hasSelected" @click="previewSelected">
+                <i class="fas fa-eye"></i>
+                预览照片
+              </button>
+              <button class="action-btn btn-danger" :disabled="!hasSelected" @click="deleteSelected">
+                <i class="fas fa-trash"></i>
+                删除选中
+              </button>
+            </div>
+
+            <!-- 照片网格 -->
+            <div v-if="currentPhotos.length > 0" class="photo-grid">
+              <div class="photo-item" v-for="photo in currentPhotos" :key="photo.id" :class="{ selected: photo.selected, loading: photo.loading }" @click="toggleSelection(photo)">
+                <div class="photo-checkbox">
+                  <el-checkbox v-model="photo.selected" @change="updateSelection" />
+                </div>
+                <div class="photo-status" v-if="photo.hasWatermark && activeTab === 'original'">已加水印</div>
+                <div class="loading-overlay" v-if="photo.loading">
+                  <div class="loading-spinner"></div>
+                </div>
+                <img :src="photo.url" :alt="photo.name" @error="handleImageError(photo)" />
+                <div class="photo-info">
+                  <div class="photo-name">[[ photo.name ]]</div>
+                  <div class="photo-meta">
+                    <span>[[ formatFileSize(photo.size) ]]</span>
+                    <span v-if="photo.uploadTime">[[ formatDate(photo.uploadTime) ]]</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-else class="empty-state">
+              <i :class="activeTab === 'original' ? 'fas fa-images' : 'fas fa-copyright'"></i>
+              <h3>暂无[[ activeTab === 'original' ? '原图' : '水印照片' ]]</h3>
+              <p>请上传照片或添加水印</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 隐藏的Canvas用于水印处理 -->
+      <canvas ref="canvas" style="display: none"></canvas>
+    </div>
+
+    <script type="module">
+      new Vue({
+        el: "#app",
+        delimiters: ["[[", "]]"],
+        data: {
+          // 标签页
+          activeTab: "original",
+
+          // 水印参数
+          wmDate: "",
+          wmDateTime: "",
+          lat: "31.263788",
+          lng: "120.731493",
+
+          // 照片数据
+          originalPhotos: [],
+          watermarkedPhotos: [],
+
+          // UI状态
+          isDragOver: false,
+          debounceTimer: null,
+          geoTimer: null,
+
+          // 水印配置
+          lineGapRatio: 0.5,
+          bottomPaddingRatio: 1.2,
+
+          // 计数器
+          photoIdCounter: 0,
+        },
+        computed: {
+          currentPhotos() {
+            return this.activeTab === "original" ? this.originalPhotos : this.watermarkedPhotos;
+          },
+          hasSelected() {
+            return this.currentPhotos.some((p) => p.selected);
+          },
+          hasWatermarkedSelected() {
+            return this.watermarkedPhotos.some((p) => p.selected);
+          },
+          totalSelected() {
+            return [...this.originalPhotos, ...this.watermarkedPhotos].filter((p) => p.selected).length;
+          },
+          totalSize() {
+            const originalSize = this.originalPhotos.reduce((sum, p) => sum + (p.size || 0), 0);
+            const watermarkedSize = this.watermarkedPhotos.reduce((sum, p) => sum + (p.size || 0), 0);
+            return originalSize + watermarkedSize;
+          },
+        },
+        mounted() {
+          this.initializeDateTime();
+          this.startGeoUpdate();
+          if (jsBridge && jsBridge.inApp) eruda.init();
+        },
+        beforeDestroy() {
+          if (this.geoTimer) {
+            clearInterval(this.geoTimer);
+          }
+          if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+          }
+        },
+        methods: {
+          // 初始化日期时间
+          initializeDateTime() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, "0");
+            const d = String(now.getDate()).padStart(2, "0");
+            const hh = String(now.getHours()).padStart(2, "0");
+            const mm = String(now.getMinutes()).padStart(2, "0");
+            const ss = String(now.getSeconds()).padStart(2, "0");
+            this.wmDate = `${y}-${m}-${d}`;
+            this.wmDateTime = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+          },
+
+          // 开始定期更新经纬度
+          startGeoUpdate() {
+            this.geoTimer = setInterval(() => {
+              this.updateGeo();
+              this.debouncedRedraw();
+            }, 5000);
+          },
+
+          // 更新经纬度
+          randomInRange(min, max, decimals = 6) {
+            const n = Math.random() * (max - min) + min;
+            return n.toFixed(decimals);
+          },
+
+          updateGeo() {
+            this.lat = this.randomInRange(31.260001, 31.269999, 6);
+            this.lng = this.randomInRange(120.700001, 120.799999, 6);
+          },
+
+          // 同步日期时间
+          syncDateTimeFromDate() {
+            const timePart = this.wmDateTime.split(" ")[1] || "10:12:23";
+            this.wmDateTime = `${this.wmDate} ${timePart}`;
+            this.debouncedRedraw();
+          },
+
+          // 水印变化时触发
+          onWatermarkChange() {
+            this.debouncedRedraw();
+          },
+
+          // 防抖重绘
+          debouncedRedraw() {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+              this.redrawAllWatermarked();
+            }, 300);
+          },
+
+          // 文件选择
+          handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            files.forEach((file) => {
+              if (file.type.startsWith("image/")) {
+                this.addPhoto(file);
+              } else {
+                this.$message.error(`文件 ${file.name} 不是图片格式`);
+              }
+            });
+            e.target.value = "";
+          },
+
+          // 拖拽处理
+          handleDragOver(e) {
+            this.isDragOver = true;
+          },
+
+          handleDragLeave(e) {
+            this.isDragOver = false;
+          },
+
+          handleDrop(e) {
+            this.isDragOver = false;
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach((file) => {
+              if (file.type.startsWith("image/")) {
+                this.addPhoto(file);
+              }
+            });
+          },
+
+          // 添加照片
+          addPhoto(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const photo = {
+                id: `photo_${++this.photoIdCounter}_${Date.now()}`,
+                name: file.name,
+                size: file.size,
+                url: e.target.result,
+                file: file,
+                selected: false,
+                loading: false,
+                hasWatermark: false,
+                watermarkedUrl: null,
+                uploadTime: new Date().toISOString(),
+              };
+              this.originalPhotos.push(photo);
+              this.$message.success(`照片 "${file.name}" 添加成功`);
+            };
+            reader.readAsDataURL(file);
+          },
+
+          // 选择切换
+          toggleSelection(photo) {
+            photo.selected = !photo.selected;
+          },
+
+          updateSelection() {
+            // 计算属性会自动更新
+          },
+
+          // 添加水印到选中照片
+          async addWatermarkToSelected() {
+            const selectedPhotos = this.originalPhotos.filter((p) => p.selected && !p.hasWatermark);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请选择要添加水印的照片");
+              return;
+            }
+
+            this.$confirm(`确定要为选中的 ${selectedPhotos.length} 张照片添加水印吗？`, "添加水印", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "info",
+            })
+              .then(() => {
+                this.processWatermarking(selectedPhotos);
+              })
+              .catch(() => {});
+          },
+
+          // 处理水印批量添加
+          async processWatermarking(photos) {
+            for (let i = 0; i < photos.length; i++) {
+              const photo = photos[i];
+              photo.loading = true;
+
+              try {
+                const watermarkedUrl = await this.addWatermarkToImage(photo.url);
+                photo.hasWatermark = true;
+                photo.watermarkedUrl = watermarkedUrl;
+
+                // 添加水印照片副本
+                const wmPhoto = {
+                  ...photo,
+                  id: `wm_${photo.id}`,
+                  url: watermarkedUrl,
+                  selected: false,
+                  loading: false,
+                  hasWatermark: true,
+                };
+                this.watermarkedPhotos.push(wmPhoto);
+
+                this.$message.success(`照片 "${photo.name}" 水印添加成功`);
+              } catch (error) {
+                this.$message.error(`照片 "${photo.name}" 水印添加失败`);
+              } finally {
+                photo.loading = false;
+              }
+            }
+          },
+
+          // 为图片添加水印
+          addWatermarkToImage(imageUrl) {
+            return new Promise((resolve, reject) => {
+              const img = new Image();
+              img.onload = () => {
+                try {
+                  const canvas = this.$refs.canvas;
+                  const ctx = canvas.getContext("2d");
+                  canvas.width = img.naturalWidth;
+                  canvas.height = img.naturalHeight;
+
+                  // 绘制原图
+                  ctx.clearRect(0, 0, canvas.width, canvas.height);
+                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                  // 准备水印文本
+                  const line1 = `纬度:${this.lat} 经度:${this.lng}`;
+                  const weekday = this.weekdayCN(this.wmDateTime.split(" ")[0]);
+                  const line2 = `${this.wmDateTime} ${weekday}`;
+
+                  // 设置字体
+                  const baseSize = Math.max(canvas.width, canvas.height);
+                  const fontSize = Math.max(18, Math.floor(baseSize * 0.023));
+                  const lineGap = Math.floor(fontSize * this.lineGapRatio);
+                  const bottomPadding = Math.floor(fontSize * this.bottomPaddingRatio);
+
+                  ctx.font = `${fontSize}px sans-serif`;
+                  ctx.textAlign = "left";
+                  ctx.textBaseline = "alphabetic";
+
+                  // 计算位置
+                  const centerX = Math.floor(canvas.width / 2);
+                  const maxTextWidth = Math.max(ctx.measureText(line1).width, ctx.measureText(line2).width);
+                  const leftX = Math.floor(centerX - maxTextWidth / 2);
+                  const adjustY = Math.floor(fontSize * 0.2);
+                  const bottomY = canvas.height - bottomPadding + adjustY;
+                  const firstLineY = bottomY - (lineGap + fontSize) - adjustY;
+
+                  // 绘制水印
+                  ctx.fillStyle = "rgba(255,255,255,1)";
+                  ctx.fillText(line1, leftX, firstLineY);
+                  ctx.fillText(line2, leftX, bottomY);
+
+                  resolve(canvas.toDataURL("image/png"));
+                } catch (error) {
+                  reject(error);
+                }
+              };
+              img.onerror = reject;
+              img.crossOrigin = "anonymous";
+              img.src = imageUrl;
+            });
+          },
+
+          // 重绘所有水印照片
+          async redrawAllWatermarked() {
+            const photosToRedraw = this.originalPhotos.filter((p) => p.hasWatermark);
+            if (photosToRedraw.length === 0) return;
+
+            this.$message.info("正在更新水印...");
+            await this.processWatermarking(photosToRedraw);
+
+            // 更新水印照片列表
+            this.watermarkedPhotos = this.watermarkedPhotos.filter((p) => {
+              const original = this.originalPhotos.find((orig) => orig.id === p.id.replace("wm_", ""));
+              return original && original.hasWatermark;
+            });
+          },
+
+          // 获取星期
+          weekdayCN(dateStr) {
+            const map = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+            const dt = new Date(dateStr.replace(/-/g, "/"));
+            return map[dt.getDay()] || "";
+          },
+
+          // 上传选中原图
+          async uploadSelected() {
+            const selectedPhotos = this.originalPhotos.filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请选择要上传的照片");
+              return;
+            }
+
+            this.$confirm(`确定要上传 ${selectedPhotos.length} 张原图吗？`, "上传原图", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "info",
+            })
+              .then(() => {
+                this.uploadPhotos(selectedPhotos, false);
+              })
+              .catch(() => {});
+          },
+
+          // 上传选中水印图
+          async uploadWatermarkedSelected() {
+            const selectedPhotos = this.watermarkedPhotos.filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请选择要上传的水印照片");
+              return;
+            }
+
+            this.$confirm(`确定要上传 ${selectedPhotos.length} 张水印照片吗？`, "上传水印图", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "info",
+            })
+              .then(() => {
+                this.uploadPhotos(selectedPhotos, true);
+              })
+              .catch(() => {});
+          },
+
+          // 上传照片
+          async uploadPhotos(photos, isWatermarked) {
+            for (let photo of photos) {
+              photo.loading = true;
+            }
+
+            try {
+              // 这里应该调用实际的上传API
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+
+              this.$message.success(`成功上传 ${photos.length} 张${isWatermarked ? "水印" : ""}照片`);
+            } catch (error) {
+              this.$message.error("上传失败，请重试");
+            } finally {
+              for (let photo of photos) {
+                photo.loading = false;
+              }
+            }
+          },
+
+          // 下载水印照片
+          downloadWatermarkedSelected() {
+            const selectedPhotos = this.watermarkedPhotos.filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请选择要下载的水印照片");
+              return;
+            }
+
+            selectedPhotos.forEach((photo) => {
+              const a = document.createElement("a");
+              a.href = photo.url;
+              a.download = photo.name.replace(/\.[^.]+$/, "_wm.png");
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            });
+
+            this.$message.success(`成功下载 ${selectedPhotos.length} 张水印照片`);
+          },
+
+          // 预览照片
+          previewSelected() {
+            const selectedPhotos = this.currentPhotos.filter((p) => p.selected);
+            if (selectedPhotos.length === 0) {
+              this.$message.warning("请选择要预览的照片");
+              return;
+            }
+
+            this.$message.info(`预览 ${selectedPhotos.length} 张照片`);
+            // 这里可以实现图片预览功能
+          },
+
+          // 删除选中
+          deleteSelected() {
+            const selectedCount = this.totalSelected;
+            if (selectedCount === 0) {
+              this.$message.warning("请选择要删除的照片");
+              return;
+            }
+
+            this.$confirm(`确定要删除选中的 ${selectedCount} 张照片吗？`, "删除照片", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning",
+            })
+              .then(() => {
+                // 删除原图
+                this.originalPhotos = this.originalPhotos.filter((p) => !p.selected);
+
+                // 删除对应的水印照片
+                const remainingOriginalIds = this.originalPhotos.map((p) => p.id);
+                this.watermarkedPhotos = this.watermarkedPhotos.filter((p) => {
+                  const originalId = p.id.replace("wm_", "");
+                  return remainingOriginalIds.includes(originalId);
+                });
+
+                this.$message.success("删除成功");
+              })
+              .catch(() => {});
+          },
+
+          // 格式化文件大小
+          formatFileSize(bytes) {
+            if (!bytes || bytes === 0) return "0 B";
+            const k = 1024;
+            const sizes = ["B", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+          },
+
+          // 格式化日期
+          formatDate(dateString) {
+            if (!dateString) return "";
+            try {
+              const date = new Date(dateString);
+              return date.toLocaleDateString("zh-CN", {
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+            } catch {
+              return dateString;
+            }
+          },
+
+          // 图片错误处理
+          handleImageError(photo) {
+            console.error("图片加载失败:", photo);
+            this.$message.error("图片加载失败");
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

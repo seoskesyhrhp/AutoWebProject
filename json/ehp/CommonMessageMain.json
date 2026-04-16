@@ -1,0 +1,34 @@
+{
+    "success": true,
+    "data": {
+        "PageIndex": 0,
+        "TotalCount": 1,
+        "HasNextPage": false,
+        "Data": [
+            {
+                "TemplateCode": "ZTXMRentalTask",
+                "TemplateName": "收到载体项目检查任务",
+                "TemplateType": "T",
+                "TemplateModule": "HD",
+                "NoticeTitle": "有载体项目检查任务需要您处理",
+                "CreateDate": "2026-04-14 08:30:01",
+                "Content": "黄洪给您分配了载体项目检查任务【独墅湖久亚电梯日常巡检0619(2026041401)】，请尽快处理。",
+                "LinkUrl": "/page/#/hdMain",
+                "RecordCode": "CT260413000027",
+                "MobileUrl": "/mobile/#/pages/danger/checkTask/view?id=26664",
+                "IsRead": false,
+                "CompanyCode": "P0002",
+                "Controller": "HDCheckTask",
+                "SourceType": "RentalPatrolRoute",
+                "RecordID": 26664,
+                "SourceTypeCatalog": "Rental",
+                "RecordDId": "d9e73812fd8ca5c6492376fde2c4db6b11b2d35fbce8b65b4b82d6c708f22ef6",
+                "ID": 345803,
+                "DId": "1ee32a1fd40af823b42f6cac3eff0c0deadaf527514aa3462ebc164ed955258c"
+            }
+        ]
+    },
+    "errorType": 0,
+    "code": 0,
+    "ehsStatus": false
+}

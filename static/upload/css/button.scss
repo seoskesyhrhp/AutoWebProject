@@ -1,0 +1,25 @@
+.container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+  }
+$words: '4','8','12','16','20','24','28','32','36','40','44','48','52','56','60','64','68','72','76','80','84','88','92','96';
+$max:1420px;
+.container {
+    @each $word in $words {
+        @media screen and (min-width: $max) {
+            display: flex;
+            justify-content: flex-end;
+            position: relative;
+            top: -588px;
+            width: 70px;
+            left: #{$word}+'%';
+        }
+        $max: $max - 60px;
+    }
+}
+
+
+    

@@ -1,0 +1,340 @@
+[
+    [
+        {
+            "now": "2025-10-28 08:31:03",
+            "id": 18508,
+            "RecordCode": "CT251027000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251027000024&id=18508",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251027000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-10-28 09:10:08",
+            "id": 18508,
+            "RecordCode": "CT251027000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251027000024&id=18508",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251027000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-10-28 09:29:24",
+            "id": 18508,
+            "RecordCode": "CT251027000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251027000024&id=18508",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251027000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-14 08:31:05",
+            "id": 19372,
+            "RecordCode": "CT251113000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251113000024&id=19372",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251113000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-04 08:31:05",
+            "id": 18864,
+            "RecordCode": "CT251103000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251103000024&id=18864",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251103000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-19 08:31:05",
+            "id": 19592,
+            "RecordCode": "CT251118000025",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251118000025&id=19592",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251118000025&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-11 08:31:05",
+            "id": 19177,
+            "RecordCode": "CT251110000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251110000024&id=19177",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251110000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-05 08:31:05",
+            "id": 18916,
+            "RecordCode": "CT251104000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251104000024&id=18916",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251104000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-01 08:31:03",
+            "id": 18715,
+            "RecordCode": "CT251031000031",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251031000031&id=18715",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251031000031&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-10-27 08:31:02",
+            "id": 18463,
+            "RecordCode": "CT251026000023",
+            "url": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251026000023&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-10-27 18:28:10",
+            "id": 18463,
+            "RecordCode": "CT251026000023",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251026000023&id=18463",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251026000023&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-23 09:42:40",
+            "id": 19805,
+            "RecordCode": "CT251122000013",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251122000013&id=19805",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251122000013&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-20 21:05:28",
+            "id": 19647,
+            "RecordCode": "CT251119000025",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251119000025&id=19647",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251119000025&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-10-26 08:31:02",
+            "id": 18422,
+            "RecordCode": "CT251025000012"
+        },
+        {
+            "now": "2025-10-26 13:43:20",
+            "id": 18422,
+            "RecordCode": "CT251025000012"
+        },
+        {
+            "now": "2025-10-26 13:55:47",
+            "id": 18422,
+            "RecordCode": "CT251025000012",
+            "url": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251025000012&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-10-26 14:01:41",
+            "id": 18422,
+            "RecordCode": "CT251025000012",
+            "url": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251025000012&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-10-31 08:31:02",
+            "id": 18660,
+            "RecordCode": "CT251030000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251030000024&id=18660",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251030000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-18 08:31:05",
+            "id": 19536,
+            "RecordCode": "CT251117000025",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251117000025&id=19536",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251117000025&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-12 08:31:04",
+            "id": 19257,
+            "RecordCode": "CT251111000053",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251111000053&id=19257",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251111000053&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-11-12 22:34:26",
+            "id": 19257,
+            "RecordCode": "CT251111000053",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251111000053&id=19257",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251111000053&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-02 08:31:02",
+            "id": 18777,
+            "RecordCode": "CT251101000041",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251101000041&id=18777",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251101000041&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-10 09:00:03",
+            "id": 19131,
+            "RecordCode": "CT251109000023",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251109000023&id=19131",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251109000023&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-11-10 09:21:17",
+            "id": 19131,
+            "RecordCode": "CT251109000023",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251109000023&id=19131",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251109000023&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-11-10 09:21:50",
+            "id": 19131,
+            "RecordCode": "CT251109000023",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251109000023&id=19131",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251109000023&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        },
+        {
+            "now": "2025-11-10 10:27:43",
+            "id": 19131,
+            "RecordCode": "CT251109000023",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251109000023&id=19131",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251109000023&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-06 08:31:04",
+            "id": 18969,
+            "RecordCode": "CT251105000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251105000024&id=18969",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251105000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-13 08:31:05",
+            "id": 19318,
+            "RecordCode": "CT251112000032",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251112000032&id=19318",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251112000032&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-10-30 08:31:03",
+            "id": 18614,
+            "RecordCode": "CT251029000032",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251029000032&id=18614",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251029000032&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-21 08:31:04",
+            "id": 19699,
+            "RecordCode": "CT251120000025",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251120000025&id=19699",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251120000025&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-09 08:31:04",
+            "id": 19087,
+            "RecordCode": "CT251108000012",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251108000012&id=19087",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251108000012&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-17 08:31:04",
+            "id": 19490,
+            "RecordCode": "CT251116000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251116000024&id=19490",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251116000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-03 08:31:03",
+            "id": 18819,
+            "RecordCode": "CT251102000023",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251102000023&id=18819",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251102000023&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-10-25 08:31:03",
+            "id": 18390,
+            "RecordCode": "CT251024000013"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-22 08:31:05",
+            "id": 19766,
+            "RecordCode": "CT251121000042",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251121000042&id=19766",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251121000042&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-07 08:31:05",
+            "id": 19016,
+            "RecordCode": "CT251106000024",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251106000024&id=19016",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251106000024&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-08 08:31:05",
+            "id": 19054,
+            "RecordCode": "CT251107000013",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251107000013&id=19054",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251107000013&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-15 08:31:05",
+            "id": 19413,
+            "RecordCode": "CT251114000013",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251114000013&id=19413",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251114000013&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-10-24 12:21:22",
+            "id": 18343,
+            "RecordCode": "CT251023000024"
+        }
+    ],
+    [
+        {
+            "now": "2025-11-16 08:31:05",
+            "id": 19447,
+            "RecordCode": "CT251115000012",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251115000012&id=19447",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251115000012&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ],
+    [
+        {
+            "now": "2025-10-29 08:31:03",
+            "id": 18556,
+            "RecordCode": "CT251028000026",
+            "url": "https://ehs.sispark.com.cn:8443/mobile/#/pages/danger/checkTask/patrolRouteList?ctCode=CT251028000026&id=18556",
+            "listurl": "https://ehs.sispark.com.cn:8443/api/v2/HDCheckTask/GetApiPageData?ctCode=CT251028000026&currStatus=do&page=0&limit=20&conditions=&dataType=PatrolRouteList"
+        }
+    ]
+]

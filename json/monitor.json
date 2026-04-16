@@ -1,0 +1,119 @@
+{
+  "processes": [
+    {
+      "user": "root",
+      "pid": 2094,
+      "cpu_percent": 0,
+      "mem_percent": 0.8,
+      "vsz_kb": 225572,
+      "rss_kb": 15648,
+      "state": "S",
+      "start_time": "Mar29",
+      "elapsed_time": "11-00:02:00",
+      "process_name": "gunicorn",
+      "command": "/usr/local/bin/python3.8 /usr/local/bin/gunicorn -w 3 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000 --reload",
+      "stat_details": {
+        "running": false,
+        "sleeping": true,
+        "disk_sleep": false,
+        "stopped": false,
+        "paging": false,
+        "dead": false,
+        "zombie": false,
+        "is_background": false,
+        "is_foreground": false,
+        "is_multithreaded": false,
+        "is_session_leader": false
+      }
+    },
+    {
+      "user": "root",
+      "pid": 2207,
+      "cpu_percent": 0.4,
+      "mem_percent": 6.4,
+      "vsz_kb": 793336,
+      "rss_kb": 120932,
+      "state": "Sl",
+      "start_time": "Mar29",
+      "elapsed_time": "11-00:01:59",
+      "process_name": "gunicorn",
+      "command": "/usr/local/bin/python3.8 /usr/local/bin/gunicorn -w 3 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000 --reload",
+      "stat_details": {
+        "running": false,
+        "sleeping": true,
+        "disk_sleep": false,
+        "stopped": false,
+        "paging": false,
+        "dead": false,
+        "zombie": false,
+        "is_background": false,
+        "is_foreground": false,
+        "is_multithreaded": true,
+        "is_session_leader": false
+      }
+    },
+    {
+      "user": "root",
+      "pid": 2211,
+      "cpu_percent": 0.4,
+      "mem_percent": 4.6,
+      "vsz_kb": 702320,
+      "rss_kb": 87704,
+      "state": "Sl",
+      "start_time": "Mar29",
+      "elapsed_time": "11-00:01:59",
+      "process_name": "gunicorn",
+      "command": "/usr/local/bin/python3.8 /usr/local/bin/gunicorn -w 3 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000 --reload",
+      "stat_details": {
+        "running": false,
+        "sleeping": true,
+        "disk_sleep": false,
+        "stopped": false,
+        "paging": false,
+        "dead": false,
+        "zombie": false,
+        "is_background": false,
+        "is_foreground": false,
+        "is_multithreaded": true,
+        "is_session_leader": false
+      }
+    },
+    {
+      "user": "root",
+      "pid": 11094,
+      "cpu_percent": 0.4,
+      "mem_percent": 5.6,
+      "vsz_kb": 712368,
+      "rss_kb": 106820,
+      "state": "Sl",
+      "start_time": "Apr01",
+      "elapsed_time": "8-10:25:08",
+      "process_name": "gunicorn",
+      "command": "/usr/local/bin/python3.8 /usr/local/bin/gunicorn -w 3 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000 --reload",
+      "stat_details": {
+        "running": false,
+        "sleeping": true,
+        "disk_sleep": false,
+        "stopped": false,
+        "paging": false,
+        "dead": false,
+        "zombie": false,
+        "is_background": false,
+        "is_foreground": false,
+        "is_multithreaded": true,
+        "is_session_leader": false
+      }
+    }
+  ],
+  "summary": {
+    "process_count": 4,
+    "total_cpu_percent": 1.2,
+    "total_mem_percent": 17.4,
+    "total_vsz_kb": 2433596,
+    "total_rss_kb": 331104,
+    "statistics": {
+      "S": 1,
+      "Sl": 3
+    }
+  }
+}

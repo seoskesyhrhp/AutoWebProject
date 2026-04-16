@@ -1,0 +1,10 @@
+@for $i from 1 through 100 {
+  .bg-squares li:nth-child(#{$i}) {
+    left: (random(100) / 100) * 100%;
+    width: (random(200) / 100) * 100px;
+    height: (random(200) / 100) * 100px;
+    background-color: rgba(255, 255, 255, (random() * 0.9 + 0.1));
+    animation-delay: random(25) + 1s;
+    animation-duration: random(50) + 1s;
+  }
+}

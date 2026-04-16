@@ -1,0 +1,74 @@
+[
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPOP000223122500054",
+        "CheckAreaName": "A3栋1楼西大厅客梯",
+        "ct_code": "CT251119000025",
+        "CreateDate": "2025-11-20 08:30:00",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500054/_capture_97837.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500054/_capture_97837.jpg"
+        ]
+    },
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPOP000223122500029",
+        "CheckAreaName": "A3栋1楼东大厅客梯",
+        "ct_code": "CT251119000025",
+        "CreateDate": "2025-11-20 08:30:00",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500029/_capture_03284.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500029/_capture_03284.jpg"
+        ]
+    },
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPOP000223122500003",
+        "CheckAreaName": "A3栋1楼北大厅客梯",
+        "ct_code": "CT251119000025",
+        "CreateDate": "2025-11-20 08:30:00",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500003/_capture_80116.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500003/_capture_80116.jpg"
+        ]
+    },
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPO002738",
+        "CheckAreaName": "A1-客梯",
+        "ct_code": "CT251119000025",
+        "CreateDate": "2025-11-20 08:30:00",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPO002738/1000088819.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPO002738/1000088819.jpg"
+        ]
+    },
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPO002738",
+        "CheckAreaName": "A1-客梯",
+        "ct_code": "CT251119000025",
+        "CreateDate": "2025-11-20 08:30:00",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPO002738/1000088819.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPO002738/1000088819.jpg"
+        ]
+    },
+    {
+        "base_url": "https://ehs.sispark.com.cn:8443",
+        "cookie": ".AspNetCore.Session=ZDI2NTIxZTQtZmM1MS00NDgzLTEwZWQtZjgyZDFiMTAzYmRl",
+        "object_code": "RPOP000223122500078",
+        "CheckAreaName": "A3栋1楼货梯厅货梯",
+        "ct_code": "CT251119000025",
+        "CreateDate": "2025-11-20 08:30:00",
+        "file_path": "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500078/_capture_84122.jpg",
+        "files": [
+            "/usr/desktop/AutoWebProject/static/ehs/ehsImgs/RPOP000223122500078/_capture_84122.jpg"
+        ]
+    }
+]

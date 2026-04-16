@@ -1,0 +1,325 @@
+@charset "UTF-8";
+.frame-title {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  transform: translateY(10px);
+}
+
+.frame-title::before {
+  content: "数据请求";
+  color: #000;
+}
+
+.weather-info {
+  display: flex;
+  width: 60.2%;
+  height: 120px;
+  border-radius: 4px;
+  border: 1px solid #fff;
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+}
+.weather-info .city {
+  position: absolute;
+  top: -22px;
+  left: 6px;
+}
+.weather-info .w_future_time {
+  display: flex;
+  position: absolute;
+  top: 44px;
+  width: 100%;
+}
+.weather-info .w_future_time .update-date {
+  position: absolute;
+  left: 20px;
+}
+.weather-info .w_future_time .update-date::before {
+  content: "上次更新 ";
+}
+.weather-info .w_future_time .future_time {
+  width: 55px;
+  position: absolute;
+  right: 20px;
+}
+.weather-info .w_future_time .future_time::before {
+  content: "距下次更新 ";
+  position: absolute;
+  left: -85px;
+}
+.weather-info .w_future_time .future_time::after {
+  content: attr(title);
+  position: absolute;
+  left: 43px;
+}
+.weather-info .weather-run {
+  width: 95%;
+  position: absolute;
+  bottom: 2px;
+  left: 10px;
+  display: flex;
+}
+.weather-info .weather-run .sunrise {
+  position: absolute;
+  left: 0;
+}
+
+.weather-info .LatitudeAndLongitude .distance-item {
+  position: absolute;
+  top: -20px;
+}
+
+.weather-info .weather-run .sunrise::before {
+  content: "日出：";
+}
+.weather-info .weather-run .sunset {
+  position: absolute;
+  right: 0;
+}
+.weather-info .weather-run .sunset::before {
+  content: "日落：";
+}
+.weather-info .date {
+  display: flex;
+  position: absolute;
+  right: 0;
+}
+.weather-info .date .week {
+  margin-right: 5px;
+}
+.weather-info .date .weather-time {
+  margin-right: 5px;
+}
+.witem {
+  height: 20px;
+}
+.weather-flex {
+  width: 62%;
+  height: 128px;
+  border-radius: 4px;
+  border: 1px solid #fff;
+  position: absolute;
+  right: 5px;
+  top: 0;
+  z-index: 1004;
+}
+
+.weather-flex .weather-img {
+  display: flex;
+}
+
+.weather-flex .weather-img .w-icon {
+  width: 90px;
+  height: 60px;
+  position: absolute;
+  top: 16px;
+  left: 1px;
+}
+
+.weather-flex .weather-img .w-tem::before {
+  content: "体感温度 ";
+  color: #000;
+  font-size: 25px;
+}
+
+.weather-flex .weather-img .w-tem {
+  width: 260px;
+  height: 40px;
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+}
+
+.weather-flex .weather-img .w-tem::after {
+  content: " °C";
+  color: #000;
+}
+
+.weather-flex .weather-img .w-wea {
+  width: 92px;
+  height: 20px;
+  position: absolute;
+  left: 102px;
+}
+
+.weather-flex .weather-content {
+  width: 150px;
+  height: 100%;
+  position: absolute;
+  left: 230px;
+}
+
+.weather-flex .weather-content .UltravioletIndex,
+.weather-flex .weather-content .w-tem {
+  width: fit-content;
+  height: 20px;
+}
+
+.weather-flex .weather-content .w-tem1::after {
+  content: " °C";
+  color: #000;
+}
+
+.weather-flex .weather-content .w-tem::before {
+  content: "温度：";
+  color: #000;
+}
+
+.weather-flex .weather-content .w-tem1::before {
+  content: "高温：";
+  color: #000;
+}
+
+.weather-flex .weather-content .w-tem2::after {
+  content: " °C";
+  color: #000;
+}
+
+.weather-flex .weather-content .w-tem2::before {
+  content: "低温：";
+  color: #000;
+}
+.weather-flex .weather-content .w-win::before {
+  content: "风向：";
+}
+
+.weather-flex .weather-content .w-win_meter::before {
+  content: "风速：";
+}
+
+.weather-flex .weather-content .w-win_speed::before {
+  content: "风级：";
+}
+
+.weather-flex .weather-content .w-humidity::before {
+  content: "湿度：";
+  color: #000;
+}
+
+.weather-flex .weather-content .UltravioletIndex::before {
+  content: "紫外线指数：";
+  color: #000;
+}
+
+.w-cont {
+  width: 110px;
+  height: 20px;
+  margin-top: 1px;
+}
+
+.weather-future {
+  width: 260px;
+  height: 100%;
+  position: absolute;
+  left: 350px;
+}
+
+.weather-future .w_wea-day {
+  width: 200px;
+  height: 60px;
+  position: absolute;
+  top: 5px;
+}
+
+.weather-future .w_wea-day::before {
+  content: "白天天气 ";
+  position: relative;
+  top: -15px;
+}
+
+.weather-future .w_wea-day .w-con1 {
+  width: 75px;
+  height: 20px;
+  position: absolute;
+  top: 15px;
+  left: 185px;
+}
+
+.weather-future .w_wea-day .w-img1 {
+  width: 90px;
+  height: 50px;
+}
+
+.weather-future .w_wea-night {
+  width: 200px;
+  height: 60px;
+  position: absolute;
+  bottom: 0;
+}
+
+.weather-future .w_wea-night::before {
+  content: "夜间天气 ";
+  position: relative;
+  top: -15px;
+}
+
+.weather-future .w_wea-night .w-con2 {
+  position: absolute;
+  bottom: 25px;
+  left: 185px;
+  width: 75px;
+  height: 20px;
+}
+
+.weather-future .w_wea-night .w-img2 {
+  width: 90px;
+  height: 50px;
+}
+.weather-info .LatitudeAndLongitude {
+  width: 400px;
+  height: 20px;
+  position: absolute;
+  left: 30%;
+  bottom: 26px;
+}
+
+.weather-info .LatitudeAndLongitude .lo_latitude::before {
+  content: "纬度：";
+}
+
+.weather-info .LatitudeAndLongitude .lo_longitude::before {
+  content: "经度：";
+}
+
+.imstate {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  background-color: yellow;
+}
+.frame-flex {
+  width: 280px;
+  height: 130px;
+  border-radius: 4px;
+  border: 1px solid #fff;
+  background-color: #fff;
+  position: absolute;
+  left: 36%;
+  top: 40%;
+  z-index: 9999;
+}
+.frame-btn {
+  width: 100%;
+}
+.transfers {
+  height: 20px;
+  position: absolute;
+  right: 40px;
+  top: -22px;
+}
+.transfers > span {
+  position: relative;
+  top: -3px;
+}
+.RealTimePrecipitation {
+  position: absolute;
+  top: -73px;
+  width: 290px;
+  height: 20px;
+  left: -25px;
+}

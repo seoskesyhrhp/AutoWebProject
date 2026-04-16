@@ -1,0 +1,1352 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python 进程监控系统</title>
+    <!-- Vue 2 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <!-- Element UI -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" />
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <script src="/static/upload/axios.min.js"></script>
+    <script src="/static/upload/eruda.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        color: #e0e0e0;
+        min-height: 100vh;
+      }
+
+      .app-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        /* 避免滚动时出现 GPU 过度重绘 */
+        will-change: auto;
+      }
+
+      /* 头部样式 */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .header h1 {
+        font-size: 32px;
+        background: linear-gradient(45deg, #00c6ff, #0072ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .header h1 i {
+        font-size: 36px;
+      }
+
+      .system-info {
+        display: flex;
+        gap: 30px;
+      }
+
+      .info-card {
+        /* 减弱模糊和透明层，降低滚动重绘开销 */
+        background: rgba(18, 52, 86, 0.85);
+        border-radius: 15px;
+        padding: 15px 25px;
+        border: 1px solid rgba(0, 0, 0, 0.25);
+        text-align: center;
+        min-width: 150px;
+        transition: transform 0.3s ease;
+      }
+
+      .info-card:hover {
+        transform: translateY(-4px);
+        background: rgba(24, 66, 110, 0.95);
+      }
+
+      .info-card .value {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .info-card .label {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+
+      /* 控制面板 */
+      .control-panel {
+        /* 移除 backdrop-filter，显著减少滚动卡顿 */
+        background: rgba(10, 32, 54, 0.9);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+      }
+
+      .control-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      /* 图表容器 */
+      .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+      }
+
+      .chart-card {
+        /* 图表区域避免使用模糊，减少重绘 */
+        background: rgba(10, 32, 54, 0.92);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        height: 320px;
+        will-change: transform;
+      }
+
+      .chart-title {
+        font-size: 18px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #00c6ff;
+      }
+
+      .chart-content {
+        height: calc(100% - 40px);
+      }
+
+      /* 进程表格 */
+      .process-table {
+        /* 列表区域是滚动主力，尽量减少复杂阴影和模糊 */
+        width: 100%;
+        background: rgba(10, 32, 54, 0.95);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(0, 0, 0, 0.45);
+      }
+
+      .table-header {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .search-box {
+        width: 300px;
+      }
+
+      /* 状态标签 */
+      .status-tag {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+      }
+
+      .status-running {
+        background: linear-gradient(45deg, #00b09b, #96c93d);
+        color: white;
+      }
+
+      .status-sleeping {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+      }
+
+      .status-zombie {
+        background: linear-gradient(45deg, #f46b45, #eea849);
+        color: white;
+      }
+
+      /* 应用标签 */
+      .app-tag {
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .tag-gunicorn {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+      }
+
+      .tag-apptwo {
+        background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        color: white;
+      }
+
+      .tag-appthree {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+      }
+      .tag-sumbitTwo {
+        background: linear-gradient(45deg, #6f3ce7, #4215ca);
+        color: white;
+      }
+      /* 动画效果 */
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .charts-container {
+          grid-template-columns: 1fr;
+        }
+
+        .header {
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .system-info {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .info-card {
+          min-width: auto;
+          flex: 1;
+        }
+      }
+
+      /* 滚动条美化 */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(45deg, #00c6ff, #0072ff);
+        border-radius: 4px;
+      }
+
+      /* 进程命令详情 */
+      .command-detail {
+        font-family: "Courier New", monospace;
+        background: rgba(0, 0, 0, 0.35);
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1.6;
+        margin-top: 6px;
+        color: #e6f7ff;
+        border-left: 3px solid #00c6ff;
+        word-break: break-all;
+        overflow-x: auto;
+      }
+
+      .command-detail-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .control-select {
+        width: 150px;
+      }
+      .percent-item {
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="app-container">
+        <!-- 头部 -->
+        <div class="header">
+          <h1>
+            <i class="fas fa-server"></i>
+            Python 进程监控系统
+          </h1>
+          <div class="system-info">
+            <div class="info-card">
+              <div class="value">[[ totalProcesses ]]</div>
+              <div class="label">总进程数</div>
+            </div>
+            <div class="info-card">
+              <div class="value">[[ runningProcesses ]]</div>
+              <div class="label">运行中</div>
+            </div>
+            <div class="info-card">
+              <div class="value">[[ appTypes.length ]]</div>
+              <div class="label">应用类型</div>
+            </div>
+            <div class="info-card">
+              <div class="value pulse">[[ lastUpdate ]]</div>
+              <div class="label">最后更新</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+          <div class="control-buttons">
+            <el-button type="primary" icon="el-icon-refresh" @click="refreshData" :loading="loading" v-if="isRefresh"> 刷新数据 </el-button>
+            <el-button type="success" :icon="autoIcon" :loading="loading" @click="autoRefresh = !autoRefresh"> [[ autoRefresh ? '停止自动刷新' : '开始自动刷新' ]] </el-button>
+            <el-button type="warning" icon="el-icon-warning" @click="showAlert = true"> 告警设置 </el-button>
+            <el-button type="danger" icon="el-icon-delete" @click="handleKillAll" :disabled="!processes.length"> 关闭所有进程 </el-button>
+            <el-select class="control-select" v-model="filterState" placeholder="按状态筛选">
+              <el-option label="全部状态" value=""></el-option>
+              <el-option label="运行中" value="R"></el-option>
+              <el-option label="睡眠中" value="S"></el-option>
+              <el-option label="僵尸进程" value="Z"></el-option>
+              <el-option label="不可中断" value="D"></el-option>
+            </el-select>
+            <el-select class="control-select" v-model="filterApp" placeholder="按应用筛选">
+              <el-option label="全部应用" value=""></el-option>
+              <el-option v-for="app in appTypes" :key="app" :label="app" :value="app"></el-option>
+            </el-select>
+            <el-select class="control-select" v-model="killAppType" placeholder="选择应用类型关闭">
+              <el-option v-for="app in appTypes" :key="app + '_kill'" :label="app" :value="app"></el-option>
+            </el-select>
+            <el-button type="danger" icon="el-icon-switch-button" @click="handleKillByAppType" :disabled="!killAppType"> 按应用类型关闭 </el-button>
+          </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="charts-container">
+          <!-- 状态分布图 -->
+          <div class="chart-card">
+            <div class="chart-title">
+              <i class="fas fa-chart-pie"></i>
+              进程状态分布
+            </div>
+            <div class="chart-content" ref="stateChart"></div>
+          </div>
+
+          <!-- 应用分布图 -->
+          <div class="chart-card">
+            <div class="chart-title">
+              <i class="fas fa-chart-bar"></i>
+              应用类型分布
+            </div>
+            <div class="chart-content" ref="appChart"></div>
+          </div>
+
+          <!-- 启动时间趋势 -->
+          <div class="chart-card">
+            <div class="chart-title">
+              <i class="fas fa-chart-line"></i>
+              进程启动趋势
+            </div>
+            <div class="chart-content" ref="timeChart"></div>
+          </div>
+        </div>
+
+        <!-- 进程表格 -->
+        <div class="process-table">
+          <div class="table-header">
+            <h2 style="color: #00c6ff">
+              <i class="fas fa-list"></i>
+              进程详情列表
+            </h2>
+            <el-input class="search-box" placeholder="搜索进程..." v-model="searchText" prefix-icon="el-icon-search" clearable></el-input>
+          </div>
+
+          <el-table :data="pagedProcesses" style="width: 100%" stripe :default-sort="{prop: 'cpu_percent', order: 'descending'}" row-class-name="table-row">
+            <!-- ascending|descending 升序|降序 -->
+            <el-table-column type="expand">
+              <template slot-scope="props">
+                <div class="command-detail">
+                  <div class="command-detail-header">
+                    <strong>完整命令:</strong>
+                    <el-button type="primary" size="mini" icon="el-icon-document-copy" @click="copyCommand(props.row.command)"> 复制命令 </el-button>
+                  </div>
+                  <div>[[ props.row.command ]]</div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="pid" label="进程ID" width="100" sortable>
+              <template slot-scope="scope">
+                <span style="color: #3498db; font-weight: bold"> #[[ scope.row.pid ]] </span>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="state" label="状态" width="120" sortable>
+              <template slot-scope="scope">
+                <span class="status-tag" :class="getStatusClass(scope.row.state)"> [[ getStateText(scope.row.state) ]] </span>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="start_time" label="启动时间" width="120" sortable>
+              <template slot-scope="scope">
+                <span style="color: #2ecc71"> [[ scope.row.start_time ]] </span>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="appName" label="应用类型" width="150">
+              <template slot-scope="scope">
+                <span class="app-tag" :class="getAppClass(scope.row.appName)"> [[ scope.row.appName ]] </span>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="cpu_percent" label="CPU阈值" sortable>
+              <template slot-scope="scope">
+                <el-progress class="percent-item" :text-inside="true" :stroke-width="16" :percentage="scope.row.cpu_percent" :color="customColors"></el-progress>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="mem_percent" label="内存阈值" sortable>
+              <template slot-scope="scope">
+                <el-progress class="percent-item" :text-inside="true" :stroke-width="16" :percentage="scope.row.mem_percent" :color="customColors"></el-progress>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="command" label="命令摘要">
+              <template slot-scope="scope">
+                <div style="max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">[[ getShortCommand(scope.row.command) ]]</div>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="操作" width="120">
+              <template slot-scope="scope">
+                <el-button type="danger" size="mini" icon="el-icon-close" @click="handleKill(scope.row)" circle></el-button>
+                <el-button type="info" size="mini" icon="el-icon-info" @click="showDetail(scope.row)" circle></el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div style="margin-top: 20px; text-align: center">
+            <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper" :total="filteredProcesses.length"> </el-pagination>
+          </div>
+        </div>
+      </div>
+
+      <!-- 进程详情对话框 -->
+      <el-dialog :title="'进程详情 - PID: ' + currentProcess.pid" :visible.sync="detailVisible" width="600px">
+        <div v-if="currentProcess.pid">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="进程ID">[[ currentProcess.pid ]]</el-descriptions-item>
+            <el-descriptions-item label="状态">
+              <span class="status-tag" :class="getStatusClass(currentProcess.state)"> [[ getStateText(currentProcess.state) ]] </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="启动时间">[[ currentProcess.start ]]</el-descriptions-item>
+            <el-descriptions-item label="运行时长">[[ calculateUptime(currentProcess.start) ]]</el-descriptions-item>
+            <el-descriptions-item label="应用类型" :span="2">
+              <span class="app-tag" :class="getAppClass(currentProcess.appName)"> [[ currentProcess.appName ]] </span>
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <div style="margin-top: 20px">
+            <div class="command-detail">
+              <div class="command-detail-header">
+                <h4 style="margin: 0">完整命令:</h4>
+                <el-button type="primary" size="mini" icon="el-icon-document-copy" @click="copyCommand(currentProcess.command)"> 复制命令 </el-button>
+              </div>
+              <div>[[ currentProcess.command ]]</div>
+            </div>
+          </div>
+        </div>
+      </el-dialog>
+
+      <!-- 告警设置对话框 -->
+      <el-dialog title="告警设置" :visible.sync="showAlert" width="500px">
+        <el-form label-width="120px">
+          <el-form-item label="CPU阈值">
+            <el-progress :text-inside="true" :stroke-width="24" :percentage="alertConfig.cpuThreshold" :color="customColors"></el-progress>
+          </el-form-item>
+          <el-form-item label="内存阈值">
+            <el-progress :text-inside="true" :stroke-width="24" :percentage="alertConfig.memoryThreshold" :color="customColors"></el-progress>
+          </el-form-item>
+          <el-form-item label="僵尸进程告警">
+            <el-switch v-model="alertConfig.zombieAlert"></el-switch>
+          </el-form-item>
+          <el-form-item label="自动重启">
+            <el-switch v-model="alertConfig.autoRestart" @change="handleAutoRestartChange"></el-switch>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="showAlert = false">取消</el-button>
+          <el-button type="primary" @click="saveAlertConfig">保存配置</el-button>
+        </span>
+      </el-dialog>
+    </div>
+
+    <script>
+      new Vue({
+        el: "#app",
+        delimiters: ["[[", "]]"], // 修改Vue的模板分隔符
+        data() {
+          return {
+            // 原始数据
+            processes: [],
+            // 界面状态
+            loading: false,
+            isRefresh: false,
+            autoRefresh: false,
+            searchText: "", // bound to input immediately
+            searchQuery: "", // debounced version used for filtering
+            _searchDebounceTimer: null,
+            filterState: "",
+            autoIcon: "el-icon-warning", // el-icon-video-play or el-icon-video-pause
+            filterApp: "",
+            killAppType: "",
+            currentPage: 1,
+            pageSize: 10,
+            detailVisible: false,
+            showAlert: false,
+            customColors: [
+              { color: "#1989fa", percentage: 20 },
+              { color: "#6f7ad3", percentage: 40 },
+              { color: "#5cb87a", percentage: 60 },
+              { color: "#e6a23c", percentage: 80 },
+              { color: "#f56c6c", percentage: 100 },
+            ],
+            currentProcess: {},
+            // 告警配置
+            alertConfig: {
+              cpuThreshold: 0,
+              memoryThreshold: 0,
+              zombieAlert: true,
+              autoRestart: false,
+            },
+            // 图表实例
+            stateChart: null,
+            appChart: null,
+            timeChart: null,
+            // 轻量化状态
+            lastUpdate: "",
+            _chartsUpdateScheduled: false,
+            _autoRefreshTimerId: null,
+            _resizeRafId: null,
+          };
+        },
+        computed: {
+          // 计算属性
+          totalProcesses() {
+            return this.processes.length;
+          },
+          runningProcesses() {
+            return this.processes.filter((p) => p.state.includes("R")).length;
+          },
+          // lastUpdate is now a data property updated only when refresh happens
+          appTypes() {
+            const types = new Set();
+            this.processes.forEach((p) => {
+              types.add(this.extractAppName(p.command));
+            });
+            return Array.from(types);
+          },
+          // 处理后的进程数据
+          processedProcesses() {
+            return this.processes.map((p) => {
+              return {
+                ...p,
+                name: this.extractScriptName(p.command),
+                appName: this.extractAppName(p.command),
+              };
+            });
+          },
+          // 筛选后的进程
+          filteredProcesses() {
+            let result = this.processedProcesses;
+            // 按状态筛选
+            if (this.filterState) {
+              result = result.filter((p) => p.state.includes(this.filterState));
+            }
+            // 按应用筛选
+            if (this.filterApp) {
+              result = result.filter((p) => p.appName === this.filterApp);
+            }
+            // 搜索筛选（使用已防抖的 searchQuery，避免每次按键都触发过滤）
+            if (this.searchQuery) {
+              const search = this.searchQuery.toLowerCase();
+              result = result.filter((p) => p.pid.toString().includes(search) || p.command.toLowerCase().includes(search) || p.appName.toLowerCase().includes(search));
+            }
+            return result;
+          },
+          // 分页数据
+          pagedProcesses() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            const end = start + this.pageSize;
+            return this.filteredProcesses.slice(start, end);
+          },
+          // 状态统计
+          stateStats() {
+            const stats = {};
+            this.processes.forEach((p) => {
+              const state = p.state.charAt(0); // 取主要状态
+              stats[state] = (stats[state] || 0) + 1;
+            });
+            return stats;
+          },
+          // 应用统计
+          appStats() {
+            const stats = {};
+            this.processes.forEach((p) => {
+              const app = this.extractAppName(p.command);
+              stats[app] = (stats[app] || 0) + 1;
+            });
+            return stats;
+          },
+          // 时间统计
+          timeStats() {
+            const stats = {};
+            this.processes.forEach((p) => {
+              const time = p.start_time.substring(0, 5); // 取小时:分钟
+              stats[time] = (stats[time] || 0) + 1;
+            });
+            // 按时间排序
+            return Object.entries(stats)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .reduce((obj, [key, value]) => {
+                obj[key] = value;
+                return obj;
+              }, {});
+          },
+        },
+        methods: {
+          handleAutoRestartChange() {
+            if (this.alertConfig.autoRestart && (this.alertConfig.cpuThreshold > 90 || this.alertConfig.memoryThreshold > 90)) {
+              this.fetchAutoRestart();
+            }
+          },
+          async fetchAutoRestart() {
+            this.$message.info("开始自动重启...");
+            const url = "/SystemProgram/all/";
+            try {
+              const obj = {
+                argv: "all",
+              };
+              const resp = await axios.post(url, obj);
+              if (resp.data.code === 200) {
+                this.alertConfig.autoRestart = false;
+                this.$message.success("自动重启已启动");
+              }
+            } catch (error) {
+              console.error(error);
+            }
+          },
+          async fetchProcesses() {
+            const url = "/getSystemProgram/";
+            try {
+              const resp = await axios.post(url);
+              if (resp.data.code === 200) {
+                this.$message.success("数据请求成功");
+                const { processes, summary } = resp.data.data;
+                this.processes = processes;
+                this.alertConfig.cpuThreshold = summary.total_cpu_percent;
+                this.alertConfig.memoryThreshold = summary.total_mem_percent;
+              }
+            } catch (error) {
+              this.$message.error("数据加载失败");
+              console.error(error);
+            }
+          },
+          capitalizeFirstLetter(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+          },
+          // 工具方法
+          extractAppName(command) {
+            if (command.includes("gunicorn")) {
+              return "Gunicorn";
+            } else {
+              const appName = this.extractScriptName(command);
+              const result = this.capitalizeFirstLetter(appName);
+              return result.split(".")[0] || "Unknown";
+            }
+            // if (command.includes("appTwo.py")) {
+            //   return "AppTwo";
+            // } else if (command.includes("appThree.py")) {
+            //   return "AppThree";
+            // } else if (command.includes("python")) {
+            //   const parts = command.split("/").pop();
+            //   return parts.split(".")[0];
+            // }
+            // return "Unknown";
+          },
+          extractScriptName(str) {
+            if (str.includes("gunicorn")) {
+              return "Gunicorn";
+            }
+            const regex = /\/?([^/\s]+\.py)(?:\s|$)/;
+            const match = str.match(regex);
+            return match ? match[1] : "Unknown";
+          },
+
+          getStateText(state) {
+            const states = {
+              R: "运行中",
+              S: "睡眠中",
+              D: "不可中断",
+              Z: "僵尸进程",
+              T: "已停止",
+              t: "跟踪停止",
+            };
+
+            const mainState = state.charAt(0);
+            let text = states[mainState] || "未知";
+
+            // 添加附加状态说明
+            if (state.includes("l")) text += " (多线程)";
+            if (state.includes("+")) text += " (前台)";
+
+            return text;
+          },
+
+          getStatusClass(state) {
+            const mainState = state.charAt(0);
+            switch (mainState) {
+              case "R":
+                return "status-running";
+              case "S":
+              case "D":
+                return "status-sleeping";
+              case "Z":
+                return "status-zombie";
+              default:
+                return "status-sleeping";
+            }
+          },
+
+          getAppClass(appName) {
+            switch (appName) {
+              case "Gunicorn":
+                return "tag-gunicorn";
+              case "AppTwo":
+                return "tag-apptwo";
+              case "AppThree":
+                return "tag-appthree";
+              case "SumbitTwo":
+                return "tag-sumbitTwo";
+              default:
+                return "";
+            }
+          },
+
+          getShortCommand(command) {
+            if (command.length > 80) {
+              return command.substring(0, 77) + "...";
+            }
+            return command;
+          },
+
+          calculateUptime(startTime) {
+            const now = new Date();
+            const [hours, minutes, seconds] = startTime.split(":").map(Number);
+            const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, seconds);
+
+            const diffMs = now - startDate;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (diffHours > 0) {
+              return `${diffHours}小时${diffMinutes}分钟`;
+            } else {
+              return `${diffMinutes}分钟`;
+            }
+          },
+
+          copyCommand(command) {
+            if (!command) {
+              this.$message.warning("没有可复制的命令");
+              return;
+            }
+
+            if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard
+                .writeText(command)
+                .then(() => {
+                  this.$message.success("命令已复制到剪贴板");
+                })
+                .catch(() => {
+                  this.$message.error("复制失败，请检查浏览器权限");
+                });
+            } else {
+              const textarea = document.createElement("textarea");
+              textarea.value = command;
+              textarea.style.position = "fixed";
+              textarea.style.opacity = "0";
+              document.body.appendChild(textarea);
+              textarea.select();
+              try {
+                const ok = document.execCommand("copy");
+                if (ok) {
+                  this.$message.success("命令已复制到剪贴板");
+                } else {
+                  this.$message.error("复制失败，请手动复制");
+                }
+              } catch (e) {
+                this.$message.error("复制失败，请手动复制");
+              } finally {
+                document.body.removeChild(textarea);
+              }
+            }
+          },
+
+          // 界面方法
+          handleKill(process) {
+            const pid = process.pid;
+            this.$confirm(`确定要结束进程 ${pid} 吗?`, "提示", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning",
+            })
+              .then(() => {
+                this.cleanProcesses(process);
+                setTimeout(() => {
+                  // this.refreshData();
+                  this.updateCharts(); // 更新图表数据
+                }, 3000);
+              })
+              .catch(() => {});
+          },
+          // 关闭所有进程
+          handleKillAll() {
+            if (!this.processes.length) {
+              this.$message.info("当前没有可关闭的进程");
+              return;
+            }
+            this.$confirm(`确定要关闭当前列表中的所有进程吗？共 ${this.processes.length} 个。`, "提示", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning",
+            })
+              .then(async () => {
+                const toKill = [...this.processes];
+                for (const p of toKill) {
+                  await this.cleanProcesses(p);
+                }
+                this.scheduleUpdateCharts();
+              })
+              .catch(() => {});
+          },
+          // 按应用类型关闭进程
+          handleKillByAppType() {
+            if (!this.killAppType) {
+              this.$message.warning("请先选择要关闭的应用类型");
+              return;
+            }
+            const targets = this.processedProcesses.filter((p) => p.appName === this.killAppType);
+            if (!targets.length) {
+              this.$message.info(`当前没有应用类型为 ${this.killAppType} 的进程`);
+              return;
+            }
+            this.$confirm(`确定要关闭应用类型为 ${this.killAppType} 的所有进程吗？共 ${targets.length} 个。`, "提示", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning",
+            })
+              .then(async () => {
+                const name = targets[0].name;
+                console.log("targets", JSON.parse(JSON.stringify(targets)));
+                // for (const p of targets) {
+                //   await this.cleanProcesses(p);
+                // }
+                await this.cleanProcessesName(name);
+                this.scheduleUpdateCharts();
+              })
+              .catch(() => {});
+          },
+          async cleanProcesses(process) {
+            if (!process?.pid) {
+              this.$message.error("无效的进程信息");
+              return;
+            }
+            const requestData = {
+              pid: process.pid,
+              command: process.command || "",
+            };
+            try {
+              const response = await axios.post("/SystemProgram/", requestData);
+              if (response.data?.code === 200) {
+                const { stderr } = response.data.data || {};
+                if (stderr?.length > 1) {
+                  this.$message.error(stderr);
+                } else {
+                  this.processes = this.processes.filter((p) => p.pid !== process.pid);
+                  this.$message.success(`进程 ${process.pid} 已结束`);
+                }
+              } else {
+                this.$message.error("操作失败，请稍后重试");
+              }
+            } catch (error) {
+              console.error("清理进程失败:", error);
+              this.$message.error("操作失败，请稍后重试");
+            }
+          },
+          async cleanProcessesName(name) {
+            if (!name) {
+              this.$message.error("无效的进程信息");
+              return;
+            }
+            const url = "/SystemProgram/all/";
+            try {
+              const obj = {
+                argv: name,
+              };
+              const response = await axios.post(url, obj);
+              console.log("response", response.data);
+              if (response.data?.code === 200) {
+                const { stderr } = response.data.data || {};
+                if (stderr?.length > 1) {
+                  this.$message.error(stderr);
+                  if (stderr.includes("appThree.py: no process found")) {
+                    this.processes = this.processes.filter((p) => p.name !== process.name);
+                    setTimeout(() => {
+                      this.$message.success(`进程 ${process.pid} 已结束`);
+                    }, 800);
+                  }
+                } else {
+                  this.processes = this.processes.filter((p) => p.name !== process.name);
+                  this.$message.success(`进程 ${process.pid} 已结束`);
+                }
+              } else {
+                this.$message.error("操作失败，请稍后重试");
+              }
+            } catch (error) {
+              console.error("清理进程失败:", error);
+              this.$message.error("操作失败，请稍后重试");
+            }
+          },
+          showDetail(process) {
+            this.currentProcess = { ...process };
+            this.detailVisible = true;
+          },
+
+          refreshData() {
+            this.loading = true;
+            this.fetchProcesses();
+            // 模拟API调用
+            setTimeout(() => {
+              // 在实际应用中，这里应该调用后端API获取最新数据
+              this.loading = false;
+              // 只在真正刷新时更新最后更新时间，避免每次计算都触发渲染
+              // this.lastUpdate = new Date().toLocaleTimeString();
+              this.$message.success("数据刷新成功");
+              // 使用调度器合并同一帧内的多次图表更新，避免卡顿
+              this.scheduleUpdateCharts();
+            }, 1000);
+          },
+
+          // 将频繁的图表更新合并到下一帧，防止短时间多次 setOption 导致卡顿
+          scheduleUpdateCharts() {
+            if (this._chartsUpdateScheduled) return;
+            this._chartsUpdateScheduled = true;
+            window.requestAnimationFrame(() => {
+              try {
+                this.updateCharts();
+              } finally {
+                this._chartsUpdateScheduled = false;
+              }
+            });
+          },
+
+          handleSizeChange(val) {
+            this.pageSize = val;
+          },
+
+          handleCurrentChange(val) {
+            this.currentPage = val;
+          },
+
+          saveAlertConfig() {
+            this.$message.success("告警配置已保存");
+            this.showAlert = false;
+          },
+
+          // 图表方法
+          initCharts() {
+            // 状态分布图
+            this.stateChart = echarts.init(this.$refs.stateChart);
+
+            // 应用分布图
+            this.appChart = echarts.init(this.$refs.appChart);
+
+            // 时间趋势图
+            this.timeChart = echarts.init(this.$refs.timeChart);
+
+            this.updateCharts();
+          },
+
+          updateCharts() {
+            // 更新状态分布图
+            this.updateStateChart();
+
+            // 更新应用分布图
+            this.updateAppChart();
+
+            // 更新时间趋势图
+            this.updateTimeChart();
+          },
+
+          updateStateChart() {
+            const option = {
+              tooltip: {
+                trigger: "item",
+                formatter: "{a} <br/>{b}: {c} ({d}%)",
+              },
+              legend: {
+                orient: "vertical",
+                left: 10,
+                top: "center",
+                textStyle: {
+                  color: "#e0e0e0",
+                },
+                data: Object.entries(this.stateStats).map(([state, count]) => ({
+                  name: `${this.getStateText(state)} (${count})`,
+                  icon: "circle",
+                })),
+              },
+              series: [
+                {
+                  name: "进程状态",
+                  type: "pie",
+                  radius: ["40%", "70%"],
+                  center: ["60%", "50%"],
+                  avoidLabelOverlap: false,
+                  itemStyle: {
+                    borderRadius: 10,
+                    borderColor: "#0f2027",
+                    borderWidth: 2,
+                  },
+                  label: {
+                    show: true,
+                    formatter: "{b}: {d}%",
+                    color: "#e0e0e0",
+                  },
+                  emphasis: {
+                    label: {
+                      show: true,
+                      fontSize: "16",
+                      fontWeight: "bold",
+                    },
+                  },
+                  labelLine: {
+                    show: true,
+                  },
+                  data: Object.entries(this.stateStats).map(([state, count]) => {
+                    let color;
+                    switch (state) {
+                      case "R":
+                        color = ["#00b09b", "#96c93d"];
+                        break;
+                      case "S":
+                        color = ["#667eea", "#764ba2"];
+                        break;
+                      case "D":
+                        color = ["#f093fb", "#f5576c"];
+                        break;
+                      default:
+                        color = ["#4facfe", "#00f2fe"];
+                    }
+
+                    return {
+                      name: this.getStateText(state),
+                      value: count,
+                      itemStyle: {
+                        color: {
+                          type: "linear",
+                          x: 0,
+                          y: 0,
+                          x2: 1,
+                          y2: 0,
+                          colorStops: [
+                            { offset: 0, color: color[0] },
+                            { offset: 1, color: color[1] },
+                          ],
+                        },
+                      },
+                    };
+                  }),
+                },
+              ],
+            };
+
+            this.stateChart.setOption(option);
+          },
+
+          updateAppChart() {
+            const option = {
+              tooltip: {
+                trigger: "axis",
+                axisPointer: {
+                  type: "shadow",
+                },
+              },
+              grid: {
+                left: "3%",
+                right: "4%",
+                bottom: "3%",
+                top: "10%",
+                containLabel: true,
+              },
+              xAxis: {
+                type: "category",
+                data: Object.keys(this.appStats),
+                axisLine: {
+                  lineStyle: {
+                    color: "#666",
+                  },
+                },
+                axisLabel: {
+                  color: "#e0e0e0",
+                },
+              },
+              yAxis: {
+                type: "value",
+                axisLine: {
+                  lineStyle: {
+                    color: "#666",
+                  },
+                },
+                axisLabel: {
+                  color: "#e0e0e0",
+                },
+                splitLine: {
+                  lineStyle: {
+                    color: "rgba(255, 255, 255, 0.1)",
+                  },
+                },
+              },
+              series: [
+                {
+                  name: "进程数量",
+                  type: "bar",
+                  barWidth: "60%",
+                  data: Object.entries(this.appStats).map(([app, count], index) => {
+                    let colors = [
+                      ["#3498db", "#2980b9"],
+                      ["#9b59b6", "#8e44ad"],
+                      ["#e74c3c", "#c0392b"],
+                    ][index % 3] || ["#4facfe", "#00f2fe"];
+
+                    return {
+                      value: count,
+                      itemStyle: {
+                        color: {
+                          type: "linear",
+                          x: 0,
+                          y: 0,
+                          x2: 0,
+                          y2: 1,
+                          colorStops: [
+                            { offset: 0, color: colors[0] },
+                            { offset: 1, color: colors[1] },
+                          ],
+                        },
+                      },
+                    };
+                  }),
+                  itemStyle: {
+                    borderRadius: [10, 10, 0, 0],
+                  },
+                },
+              ],
+            };
+
+            this.appChart.setOption(option);
+          },
+
+          updateTimeChart() {
+            const timeLabels = Object.keys(this.timeStats);
+            const timeValues = Object.values(this.timeStats);
+
+            const option = {
+              tooltip: {
+                trigger: "axis",
+                formatter: "{b}: {c} 个进程",
+              },
+              grid: {
+                left: "3%",
+                right: "4%",
+                bottom: "3%",
+                top: "10%",
+                containLabel: true,
+              },
+              xAxis: {
+                type: "category",
+                boundaryGap: false,
+                data: timeLabels,
+                axisLine: {
+                  lineStyle: {
+                    color: "#666",
+                  },
+                },
+                axisLabel: {
+                  color: "#e0e0e0",
+                },
+              },
+              yAxis: {
+                type: "value",
+                axisLine: {
+                  lineStyle: {
+                    color: "#666",
+                  },
+                },
+                axisLabel: {
+                  color: "#e0e0e0",
+                },
+                splitLine: {
+                  lineStyle: {
+                    color: "rgba(255, 255, 255, 0.1)",
+                  },
+                },
+              },
+              series: [
+                {
+                  name: "进程数量",
+                  type: "line",
+                  smooth: true,
+                  symbol: "circle",
+                  symbolSize: 8,
+                  lineStyle: {
+                    width: 3,
+                  },
+                  areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      { offset: 0, color: "rgba(0, 198, 255, 0.3)" },
+                      { offset: 1, color: "rgba(0, 114, 255, 0.1)" },
+                    ]),
+                  },
+                  itemStyle: {
+                    color: "#00c6ff",
+                    borderColor: "#0072ff",
+                    borderWidth: 2,
+                  },
+                  data: timeValues,
+                },
+              ],
+            };
+
+            this.timeChart.setOption(option);
+          },
+        },
+        mounted() {
+          if (/Android|Adr/i.test(navigator.userAgent)) eruda.init();
+          this.fetchProcesses();
+          // 初始化图表
+          this.$nextTick(() => {
+            this.initCharts();
+          });
+
+          // 自动刷新定时器（保存 id 以便销毁）
+          this._autoRefreshTimerId = setInterval(() => {
+            if (this.autoRefresh) {
+              this.refreshData();
+            }
+          }, 10000); // 每10秒刷新一次
+
+          // 窗口大小变化时重绘图表
+          this._resizeListener = () => {
+            if (this._resizeRafId) cancelAnimationFrame(this._resizeRafId);
+            this._resizeRafId = requestAnimationFrame(() => {
+              if (this.stateChart) this.stateChart.resize();
+              if (this.appChart) this.appChart.resize();
+              if (this.timeChart) this.timeChart.resize();
+              this._resizeRafId = null;
+            });
+          };
+          window.addEventListener("resize", this._resizeListener);
+
+          setInterval(() => {
+            this.lastUpdate = new Date().toLocaleTimeString();
+            this.handleAutoRestartChange();
+          }, 1000);
+        },
+
+        beforeDestroy() {
+          // 清理定时器和事件监听，防止内存泄漏
+          if (this._autoRefreshTimerId) {
+            clearInterval(this._autoRefreshTimerId);
+            this._autoRefreshTimerId = null;
+          }
+          if (this._searchDebounceTimer) {
+            clearTimeout(this._searchDebounceTimer);
+            this._searchDebounceTimer = null;
+          }
+          if (this._resizeListener) {
+            window.removeEventListener("resize", this._resizeListener);
+            this._resizeListener = null;
+          }
+          if (this._resizeRafId) {
+            cancelAnimationFrame(this._resizeRafId);
+            this._resizeRafId = null;
+          }
+        },
+        watch: {
+          // 当 processes 变化时调度图表更新，合并多次变化
+          processes: {
+            handler() {
+              this.scheduleUpdateCharts();
+            },
+            deep: true,
+          },
+          // 监听筛选条件变化
+          filteredProcesses() {
+            this.currentPage = 1;
+          },
+
+          // 防抖搜索：当用户输入时只在停止输入后应用过滤
+          searchText() {
+            if (this._searchDebounceTimer) clearTimeout(this._searchDebounceTimer);
+            this._searchDebounceTimer = setTimeout(() => {
+              this.searchQuery = this.searchText;
+              // 当搜索条件变更时回到第一页
+              this.currentPage = 1;
+              this._searchDebounceTimer = null;
+            }, 300);
+          },
+
+          // 监听自动刷新
+          autoRefresh(val) {
+            if (val) {
+              this.autoIcon = "el-icon-video-pause";
+              this.$message.success("已开启自动刷新，每10秒刷新一次");
+            } else {
+              this.autoIcon = "el-icon-video-play";
+              this.$message.info("已关闭自动刷新");
+            }
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

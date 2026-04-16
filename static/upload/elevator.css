@@ -1,0 +1,281 @@
+.block {
+  margin-bottom: 10px; /* 在元素1下方添加20像素的间隙 */
+  margin-top: 10px; /* 在元素2上方添加20像素的间隙 */
+}
+
+.elevator-row-name {
+  /* background-color: red !important; */
+  background: linear-gradient(to right, red, yellow, green) !important;
+  font-weight: bold !important;
+  font-style: italic !important;
+  color: #0c0000 !important;
+}
+.elevator-row-name:hover {
+  /* background-color: red !important; */
+  background: linear-gradient(to right, red, yellow, green) !important;
+}
+
+.QuarterlyWarranty {
+  /*季度保*/
+  /* background-color: blue !important; */
+  color: #409eff !important;
+}
+
+.halfYearWarranty {
+  /*半年保*/
+  /* background-color: #e6a23c !important; */
+  color: #e6a23c !important;
+}
+
+.annualWarranty {
+  /*年度保*/
+  /* background-color: #909399 !important; */
+  color: #67c23a !important;
+}
+
+.LoginCache {
+  width: 100%;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.input-container {
+  position: relative;
+  margin: 50px auto;
+  width: 200px;
+  left: -100px;
+}
+
+#name {
+  background: slategrey;
+  position: absolute;
+  top: -10px;
+}
+
+.input-container input[type="text"] {
+  width: 100%;
+  height: 40px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+}
+
+.input-container label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 16px;
+  padding: 10px;
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+.input-container input[type="text"]:focus + label,
+.input-container input[type="text"]:valid + label {
+  top: -40px;
+  left: 2px;
+  font-size: 16px;
+  color: blue;
+}
+
+/* 进度条容器样式 */
+.progress-container {
+  width: 100%;
+  height: 30px;
+  background-color: #ccc;
+}
+
+/* 进度条样式 */
+.progress-bar {
+  width: 0; /* 初始宽度为0，表示进度为0% */
+  height: 100%;
+  background-color: #4caf50; /* 进度条的颜色 */
+  transition: width 0.5s; /* 添加过渡效果 */
+}
+
+.downB {
+  margin-left: 80%;
+  margin-top: 10px;
+  padding: 6px 20px;
+  font-size: 14px;
+  border-radius: 4px;
+  color: #fff;
+  background-color: #409eff;
+  border-color: #409eff;
+}
+
+.card {
+  width: 185px;
+  height: 230px;
+  overflow: hidden;
+  position: absolute;
+  top: 6px;
+  left: 200px;
+}
+.autowidth-sel {
+  min-width: 120px;
+}
+.autowidth-sel .el-input__prefix {
+  position: relative;
+  left: 0px;
+  box-sizing: border-box;
+  border: 1px solid #ffffff00;
+  padding: 0 30px;
+  height: 40px;
+  line-height: 40px;
+  visibility: hidden;
+}
+.autowidth-sel input {
+  position: absolute;
+}
+.el-col {
+  margin-bottom: 10px;
+}
+.m-checkbox {
+  margin-left: 10px;
+}
+.menuAction {
+  opacity: 0.4;
+  width: 44px;
+  background-image: url(https://i.cdn.yimenapp.com/sys/f/f75.gif);
+  height: 44px;
+  background-size: contain;
+  position: absolute;
+  left: 520px;
+  top: 300px;
+  cursor: move;
+  z-index: 9999;
+}
+.menuAction:hover {
+  opacity: 1 !important;
+}
+.el-col {
+  margin-bottom: 4px;
+}
+.c_red {
+  color: red !important;
+  font-size: 16px;
+}
+.c_black {
+  font-size: 16px;
+  color: black !important;
+}
+.c_normal {
+  font-size: 16px;
+  color: #409eff;
+}
+.c_dot {
+  font-size: 16px;
+  color: #67c23a;
+}
+#qrcode > img:hover {
+  width: 250px;
+}
+.my-label {
+  background-color: #9e9e9e80 !important;
+}
+
+th {
+  background-color: #606266 !important;
+  color: white !important;
+}
+.elCol-6 .ElevatorAddressLen::before {
+  content: "共";
+}
+.elCol-6 .ElevatorAddressLen::after {
+  content: "个";
+}
+.elCol-6 > .el-input > input {
+  width: 250px;
+}
+.badge-item {
+  width: fit-content;
+}
+.badge-item-span {
+  margin-top: 10px;
+  margin-right: 20px;
+}
+.imgage-item {
+  width: 140px;
+  /* position: absolute;
+  left: 0;
+  bottom: 0; */
+}
+.week-item {
+  display: contents;
+}
+.week-item > span {
+  height: 45px;
+  width: fit-content;
+  font-style: italic;
+  background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+  background-size: 400%;
+}
+.week-item > span:hover {
+  animation: bg 10s linear infinite;
+}
+@keyframes bg {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 400%;
+  }
+}
+.Calculation {
+  font-weight: bold !important;
+  font-style: italic !important;
+  font-size: 22px !important;
+}
+.inspection {
+  color: #83f234;
+}
+.detect {
+  color: #fe2836;
+}
+.surveillanceInspection {
+  color: #edda06;
+}
+
+.Specific-item {
+  background-color: #606266 !important;
+}
+
+.maintenanceDiagram {
+  display: flex;
+  justify-content: space-around; /* 水平居中子元素 */
+  align-items: center; /* 可选：垂直居中子元素 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+}
+.maintenanceDiagram > img,
+.maintenanceDiagram > .el-image > img,
+.group > img,
+.group > .el-image > img {
+  width: 150px;
+}
+.maintenanceDiagram > span {
+  /* margin-left: 5px; */
+}
+.elPagination {
+  display: flex;
+  height: 33px;
+}
+.elPagination > .quantity-item {
+  position: relative;
+  top: 4px;
+}
+.elPagination > .quantity-item::after {
+  content: " 台";
+}
+.elPagination > .quantity-item::before {
+  content: "当前数据: ";
+}
+.elPagination > .pagination-item {
+  position: absolute;
+  left: 146px;
+}

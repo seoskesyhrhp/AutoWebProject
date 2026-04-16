@@ -1,0 +1,72 @@
+/*music元素居中*/
+.music {
+    position: relative;
+    margin: 0 auto;
+    left: auto;
+    top: auto;
+    text-align: center;
+    display: none;
+}
+
+/*音乐标题*/
+/*字体*/
+.music h1 {
+    font-size: 20px;
+    /*color: #fff;*/
+    margin: 10px 0;
+}
+/*音乐图标*/
+.m_img img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    animation: rotate 2s linear infinite;
+}
+/*音乐图标旋转*/
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/*音乐图标旋转停止*/
+.m_img.stop img {
+    animation-play-state: paused;
+}
+
+/*图片元素居中*/
+.m_img {
+    position: relative;
+    margin: 0 auto;
+    left: auto;
+    top: auto;
+    text-align: center;
+    display: none;
+}
+.lyric{
+    position: relative;
+    margin: 0 auto;
+    left: auto;
+    top: auto;
+    text-align: center;
+    display: none;
+}
+.progress-bar{
+    position: relative;
+    margin: 0 auto;
+    left: auto;
+    top: auto;
+    text-align: center;
+    height: 35px;
+}
+#progressBar{
+    position: relative;
+    margin: 0 auto;
+    left: auto;
+    top: auto;
+    text-align: center;
+    display: none;
+}

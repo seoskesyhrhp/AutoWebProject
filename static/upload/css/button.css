@@ -1,0 +1,250 @@
+.container {
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+  top: -588px;
+  width: 70px;
+}
+
+@media screen and (min-width: 1420px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 4%;
+  }
+}
+@media screen and (min-width: 1360px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 8%;
+  }
+}
+@media screen and (min-width: 1300px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 12%;
+  }
+}
+@media screen and (min-width: 1240px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 16%;
+  }
+}
+@media screen and (min-width: 1180px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 20%;
+  }
+}
+@media screen and (min-width: 1120px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 24%;
+  }
+}
+@media screen and (min-width: 1060px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 28%;
+  }
+}
+@media screen and (min-width: 1000px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 32%;
+  }
+}
+@media screen and (min-width: 940px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 36%;
+  }
+}
+@media screen and (min-width: 880px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 40%;
+  }
+}
+@media screen and (min-width: 820px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 44%;
+  }
+}
+@media screen and (min-width: 760px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 48%;
+  }
+}
+@media screen and (min-width: 700px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 52%;
+  }
+}
+@media screen and (min-width: 640px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 56%;
+  }
+}
+@media screen and (min-width: 580px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 60%;
+  }
+}
+@media screen and (min-width: 520px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 64%;
+  }
+}
+@media screen and (min-width: 460px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 68%;
+  }
+}
+@media screen and (min-width: 400px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 72%;
+  }
+}
+@media screen and (min-width: 340px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 76%;
+  }
+}
+@media screen and (min-width: 280px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 80%;
+  }
+}
+@media screen and (min-width: 220px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 84%;
+  }
+}
+@media screen and (min-width: 160px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 88%;
+  }
+}
+@media screen and (min-width: 100px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 92%;
+  }
+}
+@media screen and (min-width: 40px) {
+  .container {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    top: -588px;
+    width: 70px;
+    left: 96%;
+  }
+}
+
+/*# sourceMappingURL=button.css.map */

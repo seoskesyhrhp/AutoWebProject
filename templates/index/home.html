@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartChat AutoWeb 控制中心</title>
+    <link rel="stylesheet" href="/static/index/css/home.css" />
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="glow glow-a"></div>
+<div class="glow glow-b"></div>
+
+<main class="container">
+    <header class="hero">
+        <div class="title-wrap">
+            <p class="eyebrow">SMARTCHAT · AUTOWEB</p>
+            <h1>智能巡检控制中心</h1>
+            <p class="subtitle">统一入口 · 单体 Spring Boot · 任务调度与实时状态联动</p>
+        </div>
+        <div class="runtime">
+            <div class="runtime-item">PORT: <span class="port">--</span></div>
+            <div class="runtime-item">ENV: <span id="envText">PROD</span></div>
+            <div class="runtime-item">TIME: <span id="timeText">--:--:--</span></div>
+        </div>
+    </header>
+
+    <section class="cards">
+        <a class="card" href="/task">
+            <h2>任务面板</h2>
+            <p>进入巡检任务控制台，查看日志、发起任务与数据概览。</p>
+            <span class="go">/task</span>
+        </a>
+        <a class="card" href="/ehs">
+            <h2>EHS 页面</h2>
+            <p>打开历史 EHS 前端入口，兼容原有页面能力。</p>
+            <span class="go">/ehs</span>
+        </a>
+        <a class="card" href="/health">
+            <h2>健康检查</h2>
+            <p>用于部署探活与服务可用性检查。</p>
+            <span class="go">/health</span>
+        </a>
+    </section>
+
+    <section class="api">
+        <h3>核心接口</h3>
+        <div class="api-grid">
+            <code>POST /api/jobs/start</code>
+            <code>GET /api/jobs/{id}</code>
+            <code>POST /api/list</code>
+            <code>POST /ehs/list</code>
+        </div>
+        <p id="healthStatus" class="health">健康状态检测中...</p>
+    </section>
+
+    <section class="api">
+        <h3>GET 链接导航</h3>
+        <div id="getLinks" class="link-grid"></div>
+    </section>
+</main>
+
+<script src="/static/index/js/host.js"></script>
+<script src="/static/index/js/home.js"></script>
+</body>
+</html>

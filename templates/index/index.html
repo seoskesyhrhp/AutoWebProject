@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>EHS 巡检控制台</title>
+    <link rel="stylesheet" href="/static/index/css/app.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="glow glow-a"></div>
+<div class="glow glow-b"></div>
+
+<header class="top">
+    <div class="brand">
+        <span class="logo">◆</span>
+        <div>
+            <h1>EHS INSPECTION</h1>
+            <p class="sub">Spring Boot 控制面板 · 任务异步执行 · 日志实时拉取</p>
+        </div>
+    </div>
+    <div class="pill"><span class="port">8000</span> / <span>API</span></div>
+</header>
+
+<main class="layout">
+    <section class="panel">
+        <h2>启动任务</h2>
+        <div class="actions">
+            <button type="button" data-type="APP_TWO">appTwo · 模板巡检</button>
+            <button type="button" data-type="APP_THREE">appThree · 巡检管理器</button>
+            <button type="button" data-type="SUBMIT_TWO">sumbitTwo · 路由结束流</button>
+            <button type="button" data-type="SUBMIT_THREE">sumbitThree · 主工作流</button>
+        </div>
+        <div class="state-row">
+            <label>state（0=默认拉取，1=仅本地 CommonMessage，2=测试 RecordCode）</label>
+            <input id="state" type="number" value="0" min="0" max="2"/>
+        </div>
+        <p class="warn">将访问远程 EHS 接口并写入 <code>data/</code> 目录，请确认 token 与网络可用。</p>
+    </section>
+
+    <section class="panel">
+        <div class="log-head">
+            <h2>数据概览</h2>
+            <span id="listMeta" class="meta"></span>
+            <div class="search" role="search" aria-label="数据概览搜索">
+                <input id="listSearch" class="search-input" type="search" placeholder="搜索：区域/编码/数量…" autocomplete="off"/>
+                <button type="button" id="clearListSearch" class="ghost search-clear" title="清空搜索" aria-label="清空搜索">清空</button>
+            </div>
+            <label class="toggle">
+                <input id="stickyHeadToggle" type="checkbox" checked/>
+                <span class="toggle-ui" aria-hidden="true"></span>
+                <span class="toggle-text">固定表头</span>
+            </label>
+            <button type="button" id="refreshList" class="ghost">刷新数据</button>
+        </div>
+        <div id="listStats" class="stats"></div>
+        <div class="chart-wrap">
+            <canvas id="statusChart" aria-label="状态统计图表"></canvas>
+        </div>
+        <div id="tableWrap" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>区域</th>
+                    <th>区域编码</th>
+                    <th>CheckCnt</th>
+                    <th>模板数</th>
+                </tr>
+                </thead>
+                <tbody id="listTbody"></tbody>
+            </table>
+        </div>
+    </section>
+
+
+    <section class="panel log-panel">
+        <div class="log-head">
+            <h2>任务日志</h2>
+            <span id="jobMeta" class="meta"></span>
+            <button type="button" id="refresh" class="ghost" disabled>刷新</button>
+        </div>
+        <pre id="log" class="log">等待启动任务…</pre>
+    </section>
+</main>
+
+<script src="/static/index/js/app.js"></script>
+<script src="/static/index/js/host.js"></script>
+</body>
+</html>

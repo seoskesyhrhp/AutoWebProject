@@ -1,0 +1,163 @@
+.containers {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  width: 550px;
+  border-radius: 2px;
+  position: fixed;
+  justify-content: center;
+  text-align: center;
+  margin-left: 25%;
+  margin-right: 50%;
+}
+section > a {
+  margin-left: 10px;
+}
+.el-page-header:hover,
+.el-page-header > .el-page-header__content:hover {
+  color: #0000ff;
+}
+.item {
+  width: 100px;
+  height: 20px;
+  position: relative;
+  left: -10px;
+  top: 25px;
+}
+.zero {
+  display: flex;
+  position: absolute;
+  top: 55px;
+  left: 5px;
+  width: 550px;
+}
+.zeroh1 {
+  height: 60px;
+}
+
+.one {
+  display: flex;
+  height: 60px;
+  position: absolute;
+  top: 100px;
+}
+.oneh1 {
+  width: 282px;
+  height: 40px;
+}
+.oneh2 {
+  width: 110px;
+}
+.two {
+  display: flex;
+  position: absolute;
+  top: 160px;
+  width: 400px;
+}
+.three {
+  display: flex;
+  position: absolute;
+  top: 220px;
+  width: 550px;
+}
+
+.four {
+  display: flex;
+  position: absolute;
+  top: 320px;
+  width: 400px;
+}
+.three > button {
+  position: relative;
+  left: 125px;
+}
+.dConent {
+  position: relative;
+  left: 20px;
+}
+.dSwitch {
+  position: relative;
+  left: 8px;
+  top: 26px;
+}
+.dLogin {
+  display: flex;
+  height: 270px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  border-radius: 2px;
+  position: relative;
+  width: 550px;
+  top: 380px;
+  left: 25.5%;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to top left, #ffe29f, #ffa99f, #ff719a);
+  overflow: hidden;
+  transition: all 0.5s ease-in-out;
+}
+.Lcontent {
+  position: relative;
+  top: 100px;
+  font-size: 80px;
+  font-weight: 600;
+  font-style: italic;
+  color: #409eff;
+  left: 45%;
+}
+.iselect {
+  position: relative;
+  left: 20px;
+  top: 19px;
+}
+.sContent {
+  width: 100px;
+  position: relative;
+  left: 20px;
+  top: 15px;
+  color: #ff719a;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 600;
+}
+.dButton {
+  position: absolute;
+  left: 70px;
+}
+.qQontainer {
+  position: relative;
+  top: 110px;
+  transition: all 0.5s ease-in-out;
+  z-index: 99;
+}
+.threeh1 {
+  width: 150px;
+}
+.form .eye {
+  color: #000;
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  z-index: 3;
+  cursor: pointer;
+}
+.bg-squares {
+  animation: appear 1s;
+}
+@keyframes appear {
+  to {
+    opacity: 0.99;
+  }
+}
+.close {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 99;
+  transform: rotate(90deg);
+}
+.close:hover {
+  transform: rotate(0deg);
+}
