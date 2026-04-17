@@ -1,6 +1,7 @@
 window.addEventListener("DOMContentLoaded", function () {
   const envText = document.getElementById("envText");
   const timeText = document.getElementById("timeText");
+  const dateText = document.getElementById("dateText");
   const healthStatus = document.getElementById("healthStatus");
   const getLinks = document.getElementById("getLinks");
 
@@ -32,6 +33,37 @@ window.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /**
+   * 获取启动信息并显示到页面
+   */
+  async function loadBootInfo() {
+    try {
+      const r = await fetch("/api/info/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!r.ok) {
+        throw new Error("HTTP " + r.status);
+      }
+      const result = await r.json();
+      if (result.code === 200 && result.data && result.data.date) {
+        // 设置启动时间到 dateText
+        if (dateText) {
+          dateText.textContent = result.data.date;
+        }
+        // 同时更新环境文本
+        if (result.data.name && envText) {
+          envText.textContent = result.data.name.toUpperCase();
+        }
+        console.log("[BootInfo] 启动时间:", result.data.date);
+      } else {
+        console.warn("[BootInfo] 未获取到启动时间");
+      }
+    } catch (e) {
+      console.error("[BootInfo] 获取启动信息失败:", e.message);
+    }
+  }
+
   function renderGetLinks() {
     if (!getLinks) return;
     getLinks.innerHTML = GET_ENDPOINTS.map(function (path) {
@@ -46,4 +78,5 @@ window.addEventListener("DOMContentLoaded", function () {
   setInterval(updateClock, 1000);
   renderGetLinks();
   checkHealth();
+  loadBootInfo(); // 加载启动信息
 });

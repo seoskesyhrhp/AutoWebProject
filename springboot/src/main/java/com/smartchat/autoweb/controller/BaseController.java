@@ -19,9 +19,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 public class BaseController {
 
+    private static final Logger logger = LoggerFactory.getLogger(BaseController.class);
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Value("${app.project-root:../}")
@@ -31,6 +35,25 @@ public class BaseController {
 
     public BaseController(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+    }
+
+    /**
+     * 获取启动信息
+     */
+    @PostMapping("/api/info/")
+    public ResponseEntity<Map<String, Object>> getBootInfo() {
+        Path bootInfoFile = Path.of(projectRoot, "json", "bootInfo.json");
+        try {
+            if (Files.exists(bootInfoFile)) {
+                Map<String, Object> data = objectMapper.readValue(bootInfoFile.toFile(), new TypeReference<>() {});
+                return ResponseEntity.ok(Map.of("code", 200, "msg", "success", "data", data));
+            } else {
+                return ResponseEntity.ok(Map.of("code", 404, "msg", "bootInfo.json not found", "data", Map.of()));
+            }
+        } catch (Exception e) {
+            logger.error("读取bootInfo.json失败", e);
+            return ResponseEntity.badRequest().body(Map.of("code", 400, "msg", "fail", "err", e.getMessage()));
+        }
     }
 
     @GetMapping("/index")
