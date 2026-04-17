@@ -85,6 +85,8 @@
                 <configuration>
                     <mainClass>com.smartchat.autoweb.AutoWebSpringbootApplication</mainClass>
                     <layout>ZIP</layout>
+                    <!-- 排除开发工具，避免打包问题 -->
+                    <excludeDevtools>true</excludeDevtools>
                 </configuration>
                 <executions>
                     <execution>
@@ -93,6 +95,27 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- 资源过滤插件，优化打包性能 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>woff</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>woff2</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>eot</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>ttf</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>svg</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>png</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>jpg</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>jpeg</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>gif</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>ico</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
             </plugin>
         </plugins>
 
