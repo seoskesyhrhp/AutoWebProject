@@ -4,7 +4,7 @@ window.addEventListener("DOMContentLoaded", function () {
   const healthStatus = document.getElementById("healthStatus");
   const getLinks = document.getElementById("getLinks");
 
-  const GET_ENDPOINTS = ["/", "/home", "/task", "/health", "/index", "/ehs", "/ehs/index", "/ehs/taskImg", "/ehs/watermark", "/ehs/upload", "/system", "/ehs/status/", "/ehs/status/help", "/ehs/json/", "/api/jobs/{id}", "/requestDetailData?ctCode=CT260112000027&enableTest=false"];
+  const GET_ENDPOINTS = ["/", "/home", "/task", "/health", "/index", "/ehs", "/ehs/index", "/ehs/taskImg", "/ehs/watermark", "/ehs/chunk", "/system", "/ehs/status/", "/ehs/status/help", "/ehs/json/", "/api/jobs/{id}", "/requestDetailData?ctCode=CT260112000027&enableTest=false"];
 
   function updateClock() {
     const now = new Date();
