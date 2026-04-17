@@ -16,10 +16,13 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
         padding: 20px;
+        box-sizing: border-box;
       }
       .container {
         max-width: 900px;
         margin: 0 auto;
+        width: 100%;
+        overflow-x: hidden;
       }
       .card {
         background: white;
@@ -84,6 +87,9 @@
       .file-info .value {
         color: #333;
         font-weight: 500;
+        word-break: break-all;
+        max-width: 60%;
+        text-align: right;
       }
       .progress-container {
         margin-top: 20px;
@@ -220,6 +226,8 @@
         padding: 12px;
         text-align: left;
         border-bottom: 1px solid #eee;
+        word-break: break-all;
+        max-width: 300px;
       }
       .file-list th {
         background: #f8f9fa;
@@ -270,6 +278,8 @@
         flex-wrap: wrap;
         gap: 4px;
         margin-top: 15px;
+        max-height: 150px;
+        overflow-y: auto;
       }
       .chunk-item {
         width: 20px;
