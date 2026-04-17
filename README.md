@@ -119,6 +119,19 @@ python main.py
 | POST     | `/ehs/SaveObjectPhotos/batch`           | 批量图片上传 |
 | DELETE   | `/ehs/files/{checkAreaCode}/{filename}` | 删除图片     |
 
+### 大文件切片上传
+
+| 方法   | 路径                    | 说明           |
+| ------ | ----------------------- | -------------- |
+| POST   | `/upload/init`          | 初始化上传任务 |
+| POST   | `/upload/chunk`         | 上传切片       |
+| POST   | `/upload/merge`         | 合并切片       |
+| GET    | `/upload/progress/{id}` | 获取上传进度   |
+| GET    | `/upload/check/{id}`    | 检查已上传切片 |
+| DELETE | `/upload/cancel/{id}`   | 取消上传       |
+| GET    | `/upload/files`         | 列出已上传文件 |
+| GET    | `/upload/info`          | 获取系统信息   |
+
 ### 示例
 
 **获取巡检数据**
@@ -146,6 +159,29 @@ curl -X POST http://localhost:8080/ehs/SaveObjectPhotos/batch \
   }'
 ```
 
+**大文件切片上传**
+
+```bash
+# 1. 初始化上传
+curl -X POST http://localhost:8080/upload/init \
+  -d "fileId=abc123" \
+  -d "filename=large_file.zip" \
+  -d "fileSize=104857600" \
+  -d "totalChunks=10" \
+  -d "fileMd5=d41d8cd98f00b204e9800998ecf8427e"
+
+# 2. 上传切片
+for i in {0..9}; do
+  curl -X POST http://localhost:8080/upload/chunk \
+    -F "fileId=abc123" \
+    -F "chunkIndex=$i" \
+    -F "chunk=@chunk_$i.bin"
+done
+
+# 3. 合并切片
+curl -X POST http://localhost:8080/upload/merge -d "fileId=abc123"
+```
+
 ## 页面说明
 
 ### EHS巡检图片管理 (`/ehs/taskImg.html`)
@@ -162,6 +198,16 @@ curl -X POST http://localhost:8080/ehs/SaveObjectPhotos/batch \
 - 压缩与水印处理
 - 上传进度监控
 
+### 大文件切片上传 (`/ehs/upload`)
+
+- 支持**断网续传**：网络中断后可继续上传
+- 支持**文件秒传**：MD5校验，相同文件直接返回
+- 支持**文件替换**：同名文件自动覆盖
+- 支持**大文件**：无文件大小限制
+- **智能路径**：
+  - Linux服务器：`/usr/desktop/Webdemo/Djangodemo/ehs/target`
+  - 开发环境：`static/target`
+
 ## 配置说明
 
 ### Maven打包配置
@@ -174,6 +220,7 @@ curl -X POST http://localhost:8080/ehs/SaveObjectPhotos/batch \
    - static资源需外部部署
 
 2. **胖包模式**（推荐）
+
    ```bash
    mvn clean package -Pbundle-frontend
    ```
@@ -194,6 +241,14 @@ curl -X POST http://localhost:8080/ehs/SaveObjectPhotos/batch \
 ```
 
 ## 最近更新
+
+### v1.0.2 (2026-04-13)
+
+- 新增大文件切片上传功能
+  - 支持断网续传
+  - 支持文件秒传（MD5校验）
+  - 支持文件替换
+  - 智能路径选择（Linux/开发环境）
 
 ### v1.0.1 (2026-04-13)
 

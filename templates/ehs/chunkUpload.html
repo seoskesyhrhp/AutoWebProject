@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>大文件切片上传</title>
+    <link rel="stylesheet" href="/static/upload/css/button.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+      }
+      .upload-area {
+        border: 3px dashed #ddd;
+        border-radius: 12px;
+        padding: 60px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fafafa;
+      }
+      .upload-area:hover,
+      .upload-area.dragover {
+        border-color: #667eea;
+        background: #f0f4ff;
+      }
+      .upload-area .icon {
+        font-size: 64px;
+        color: #ccc;
+        margin-bottom: 20px;
+      }
+      .upload-area p {
+        color: #666;
+        font-size: 16px;
+      }
+      .upload-area input {
+        display: none;
+      }
+      .file-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        display: none;
+      }
+      .file-info.show {
+        display: block;
+      }
+      .file-info .row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .file-info .label {
+        color: #666;
+      }
+      .file-info .value {
+        color: #333;
+        font-weight: 500;
+      }
+      .progress-container {
+        margin-top: 20px;
+        display: none;
+      }
+      .progress-container.show {
+        display: block;
+      }
+      .progress-bar {
+        height: 24px;
+        background: #e9ecef;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 12px;
+        transition: width 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .progress-text {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 24px;
+      }
+      .status-log {
+        background: #1e1e1e;
+        color: #00ff00;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+      }
+      .status-log .log-item {
+        margin-bottom: 5px;
+      }
+      .status-log .log-item.error {
+        color: #ff6b6b;
+      }
+      .status-log .log-item.success {
+        color: #69db7c;
+      }
+      .status-log .log-item.warn {
+        color: #ffd43b;
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+      .btn-primary:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      .btn-danger {
+        background: #ff6b6b;
+        color: white;
+      }
+      .btn-danger:hover {
+        background: #fa5252;
+      }
+      .btn-secondary {
+        background: #e9ecef;
+        color: #333;
+      }
+      .btn-secondary:hover {
+        background: #dee2e6;
+      }
+      .config-panel {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .config-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .config-row:last-child {
+        margin-bottom: 0;
+      }
+      .config-row label {
+        width: 120px;
+        color: #666;
+      }
+      .config-row input,
+      .config-row select {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      .file-list {
+        margin-top: 20px;
+      }
+      .file-list table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .file-list th,
+      .file-list td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      .file-list th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #666;
+      }
+      .file-list tr:hover {
+        background: #fafafa;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .badge-success {
+        background: #d3f9d8;
+        color: #2b8a3e;
+      }
+      .badge-info {
+        background: #d0ebff;
+        color: #1864ab;
+      }
+      .system-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      }
+      .info-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+      }
+      .info-item .label {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+      .info-item .value {
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+        word-break: break-all;
+      }
+      .chunk-progress {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 15px;
+      }
+      .chunk-item {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        background: #e9ecef;
+        transition: background 0.3s ease;
+      }
+      .chunk-item.uploaded {
+        background: #69db7c;
+      }
+      .chunk-item.current {
+        background: #667eea;
+        animation: pulse 1s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>📁 大文件切片上传</h1>
+        <p class="subtitle">支持断网续传、文件秒传、自动合并</p>
+
+        <!-- 系统信息 -->
+        <div id="systemInfo" class="system-info"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 15px">配置参数</h3>
+        <div class="config-panel">
+          <div class="config-row">
+            <label>切片大小:</label>
+            <select id="chunkSize">
+              <option value="1048576">1 MB</option>
+              <option value="5242880">5 MB</option>
+              <option value="10485760" selected>10 MB</option>
+              <option value="52428800">50 MB</option>
+            </select>
+          </div>
+          <div class="config-row">
+            <label>并发数:</label>
+            <select id="concurrency">
+              <option value="1">1 个</option>
+              <option value="3" selected>3 个</option>
+              <option value="5">5 个</option>
+              <option value="10">10 个</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 15px">选择文件</h3>
+        <div class="upload-area" id="uploadArea">
+          <div class="icon">📤</div>
+          <p>点击或拖拽文件到此处上传</p>
+          <p style="font-size: 12px; color: #999; margin-top: 10px">支持任意大小文件</p>
+          <input type="file" id="fileInput" />
+        </div>
+
+        <div class="file-info" id="fileInfo">
+          <div class="row">
+            <span class="label">文件名:</span>
+            <span class="value" id="fileName"></span>
+          </div>
+          <div class="row">
+            <span class="label">文件大小:</span>
+            <span class="value" id="fileSize"></span>
+          </div>
+          <div class="row">
+            <span class="label">文件MD5:</span>
+            <span class="value" id="fileMd5">计算中...</span>
+          </div>
+          <div class="row">
+            <span class="label">切片数量:</span>
+            <span class="value" id="chunkCount"></span>
+          </div>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-text" id="progressText">0%</div>
+          </div>
+          <div class="chunk-progress" id="chunkProgress"></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="uploadBtn" disabled>开始上传</button>
+          <button class="btn btn-danger" id="cancelBtn" style="display: none">取消上传</button>
+          <button class="btn btn-secondary" id="checkBtn" style="display: none">检查断点</button>
+        </div>
+
+        <div class="status-log" id="statusLog"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 15px">已上传文件</h3>
+        <button class="btn btn-secondary" id="refreshListBtn">刷新列表</button>
+        <div class="file-list" id="fileList"></div>
+      </div>
+    </div>
+
+    <script>
+      // 状态管理
+      const state = {
+        file: null,
+        fileId: null,
+        fileMd5: null,
+        totalChunks: 0,
+        uploadedChunks: new Set(),
+        uploading: false,
+        xhrQueue: [],
+      };
+
+      // DOM 元素
+      const elements = {
+        uploadArea: document.getElementById("uploadArea"),
+        fileInput: document.getElementById("fileInput"),
+        fileInfo: document.getElementById("fileInfo"),
+        fileName: document.getElementById("fileName"),
+        fileSize: document.getElementById("fileSize"),
+        fileMd5: document.getElementById("fileMd5"),
+        chunkCount: document.getElementById("chunkCount"),
+        progressContainer: document.getElementById("progressContainer"),
+        progressFill: document.getElementById("progressFill"),
+        progressText: document.getElementById("progressText"),
+        chunkProgress: document.getElementById("chunkProgress"),
+        uploadBtn: document.getElementById("uploadBtn"),
+        cancelBtn: document.getElementById("cancelBtn"),
+        checkBtn: document.getElementById("checkBtn"),
+        statusLog: document.getElementById("statusLog"),
+        fileList: document.getElementById("fileList"),
+        systemInfo: document.getElementById("systemInfo"),
+        chunkSize: document.getElementById("chunkSize"),
+        concurrency: document.getElementById("concurrency"),
+        refreshListBtn: document.getElementById("refreshListBtn"),
+      };
+
+      // 工具函数
+      function formatSize(bytes) {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB", "TB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      }
+
+      function log(message, type = "info") {
+        const item = document.createElement("div");
+        item.className = `log-item ${type}`;
+        item.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        elements.statusLog.appendChild(item);
+        elements.statusLog.scrollTop = elements.statusLog.scrollHeight;
+      }
+
+      function updateProgress(uploaded, total) {
+        const percent = total > 0 ? ((uploaded / total) * 100).toFixed(1) : 0;
+        elements.progressFill.style.width = percent + "%";
+        elements.progressText.textContent = `${percent}% (${uploaded}/${total})`;
+      }
+
+      function renderChunkProgress(total, uploaded) {
+        elements.chunkProgress.innerHTML = "";
+        for (let i = 0; i < total; i++) {
+          const item = document.createElement("div");
+          item.className = "chunk-item";
+          if (uploaded.has(i)) item.classList.add("uploaded");
+          elements.chunkProgress.appendChild(item);
+        }
+      }
+
+      // 计算文件MD5
+      async function calculateMd5(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const spark = new SparkMD5.ArrayBuffer();
+            spark.append(e.target.result);
+            resolve(spark.end());
+          };
+          reader.onerror = reject;
+          // 对于大文件，只计算前10MB用于快速识别
+          const chunk = file.slice(0, 10 * 1024 * 1024);
+          reader.readAsArrayBuffer(chunk);
+        });
+      }
+
+      // 初始化上传
+      async function initUpload() {
+        const chunkSize = parseInt(elements.chunkSize.value);
+        const totalChunks = Math.ceil(state.file.size / chunkSize);
+        state.totalChunks = totalChunks;
+        state.fileId = await calculateMd5(state.file);
+
+        elements.chunkCount.textContent = totalChunks;
+        elements.fileMd5.textContent = state.fileId;
+
+        log(`初始化上传: ${state.file.name}, 切片数: ${totalChunks}`);
+
+        try {
+          const response = await fetch("/upload/init", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              fileId: state.fileId,
+              filename: state.file.name,
+              fileSize: state.file.size,
+              totalChunks: totalChunks,
+              fileMd5: state.fileId,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.code === 200) {
+            if (result.data && result.data.instant) {
+              // 秒传
+              log("秒传成功! 文件已存在", "success");
+              updateProgress(totalChunks, totalChunks);
+              renderChunkProgress(totalChunks, new Set([...Array(totalChunks).keys()]));
+              state.uploadedChunks = new Set([...Array(totalChunks).keys()]);
+              elements.uploadBtn.disabled = true;
+              elements.cancelBtn.style.display = "none";
+              refreshFileList();
+              return;
+            }
+            log("初始化成功", "success");
+            elements.uploadBtn.disabled = false;
+
+            // 检查是否有断点续传
+            checkResume();
+          } else {
+            log("初始化失败: " + result.msg, "error");
+          }
+        } catch (error) {
+          log("初始化错误: " + error.message, "error");
+        }
+      }
+
+      // 检查断点续传
+      async function checkResume() {
+        try {
+          const response = await fetch(`/upload/check/${state.fileId}`);
+          const result = await response.json();
+
+          if (result.code === 200 && result.data && result.data.uploadedChunks) {
+            const uploaded = new Set(result.data.uploadedChunks);
+            if (uploaded.size > 0) {
+              state.uploadedChunks = uploaded;
+              log(`发现断点续传数据: 已上传 ${uploaded.size}/${state.totalChunks} 切片`, "warn");
+              updateProgress(uploaded.size, state.totalChunks);
+              renderChunkProgress(state.totalChunks, uploaded);
+              elements.checkBtn.style.display = "inline-block";
+            }
+          }
+        } catch (error) {
+          console.error("检查断点失败:", error);
+        }
+      }
+
+      // 上传切片
+      function uploadChunk(chunkIndex) {
+        return new Promise((resolve, reject) => {
+          const chunkSize = parseInt(elements.chunkSize.value);
+          const start = chunkIndex * chunkSize;
+          const end = Math.min(start + chunkSize, state.file.size);
+          const chunk = state.file.slice(start, end);
+
+          const formData = new FormData();
+          formData.append("fileId", state.fileId);
+          formData.append("chunkIndex", chunkIndex);
+          formData.append("chunk", chunk);
+
+          const xhr = new XMLHttpRequest();
+          state.xhrQueue.push(xhr);
+
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              const result = JSON.parse(xhr.responseText);
+              if (result.code === 200) {
+                state.uploadedChunks.add(chunkIndex);
+                updateProgress(state.uploadedChunks.size, state.totalChunks);
+                renderChunkProgress(state.totalChunks, state.uploadedChunks);
+                resolve(result);
+              } else {
+                reject(new Error(result.msg));
+              }
+            } else {
+              reject(new Error("上传失败"));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error("网络错误"));
+          xhr.onabort = () => reject(new Error("已取消"));
+
+          xhr.open("POST", "/upload/chunk");
+          xhr.send(formData);
+        });
+      }
+
+      // 开始上传
+      async function startUpload() {
+        state.uploading = true;
+        elements.uploadBtn.disabled = true;
+        elements.cancelBtn.style.display = "inline-block";
+        elements.progressContainer.classList.add("show");
+
+        const concurrency = parseInt(elements.concurrency.value);
+        const pendingChunks = [];
+
+        for (let i = 0; i < state.totalChunks; i++) {
+          if (!state.uploadedChunks.has(i)) {
+            pendingChunks.push(i);
+          }
+        }
+
+        log(`开始上传, 并发数: ${concurrency}, 待上传切片: ${pendingChunks.length}`);
+
+        // 并发上传
+        const uploadQueue = async () => {
+          while (pendingChunks.length > 0 && state.uploading) {
+            const batch = pendingChunks.splice(0, concurrency);
+            const tasks = batch.map((idx) =>
+              uploadChunk(idx)
+                .then(() => log(`切片 ${idx + 1}/${state.totalChunks} 上传成功`))
+                .catch((err) => {
+                  log(`切片 ${idx + 1} 上传失败: ${err.message}`, "error");
+                  pendingChunks.push(idx); // 重新加入队列
+                }),
+            );
+            await Promise.all(tasks);
+          }
+        };
+
+        try {
+          await uploadQueue();
+
+          if (state.uploading && state.uploadedChunks.size === state.totalChunks) {
+            log("所有切片上传完成, 开始合并...");
+            await mergeChunks();
+          } else if (!state.uploading) {
+            log("上传已取消", "warn");
+          }
+        } catch (error) {
+          log("上传错误: " + error.message, "error");
+        }
+
+        state.uploading = false;
+        elements.cancelBtn.style.display = "none";
+      }
+
+      // 合并切片
+      async function mergeChunks() {
+        try {
+          const response = await fetch("/upload/merge", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ fileId: state.fileId }),
+          });
+
+          const result = await response.json();
+
+          if (result.code === 200) {
+            log(`文件合并成功! 路径: ${result.data.path}`, "success");
+            log(`文件大小: ${formatSize(result.data.size)}`, "success");
+            refreshFileList();
+          } else {
+            log("合并失败: " + result.msg, "error");
+          }
+        } catch (error) {
+          log("合并错误: " + error.message, "error");
+        }
+      }
+
+      // 取消上传
+      function cancelUpload() {
+        state.uploading = false;
+        state.xhrQueue.forEach((xhr) => xhr.abort());
+        state.xhrQueue = [];
+        log("正在取消上传...", "warn");
+      }
+
+      // 刷新文件列表
+      async function refreshFileList() {
+        try {
+          const response = await fetch("/upload/files");
+          const result = await response.json();
+
+          if (result.code === 200) {
+            const files = result.data.files || [];
+            if (files.length === 0) {
+              elements.fileList.innerHTML = '<p style="color: #999; padding: 20px;">暂无文件</p>';
+            } else {
+              elements.fileList.innerHTML = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>文件名</th>
+                                        <th>大小</th>
+                                        <th>修改时间</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${files
+                                      .map(
+                                        (f) => `
+                                        <tr>
+                                            <td>${f.name}</td>
+                                            <td>${formatSize(f.size)}</td>
+                                            <td>${new Date(f.modified).toLocaleString()}</td>
+                                            <td><span class="badge badge-success">已完成</span></td>
+                                        </tr>
+                                    `,
+                                      )
+                                      .join("")}
+                                </tbody>
+                            </table>
+                        `;
+            }
+          }
+        } catch (error) {
+          console.error("获取文件列表失败:", error);
+        }
+      }
+
+      // 加载系统信息
+      async function loadSystemInfo() {
+        try {
+          const response = await fetch("/upload/info");
+          const result = await response.json();
+
+          if (result.code === 200) {
+            const data = result.data;
+            elements.systemInfo.innerHTML = `
+                        <div class="info-item">
+                            <div class="label">操作系统</div>
+                            <div class="value">${data.osName} ${data.osVersion}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">保存路径</div>
+                            <div class="value">${data.targetDirectory}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">运行目录</div>
+                            <div class="value">${data.userDir}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">系统类型</div>
+                            <div class="value">${data.isLinux ? "Linux 服务器" : "开发环境"}</div>
+                        </div>
+                    `;
+          }
+        } catch (error) {
+          console.error("获取系统信息失败:", error);
+        }
+      }
+
+      // 事件绑定
+      elements.uploadArea.addEventListener("click", () => elements.fileInput.click());
+      elements.uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        elements.uploadArea.classList.add("dragover");
+      });
+      elements.uploadArea.addEventListener("dragleave", () => {
+        elements.uploadArea.classList.remove("dragover");
+      });
+      elements.uploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        elements.uploadArea.classList.remove("dragover");
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleFileSelect(files[0]);
+        }
+      });
+
+      elements.fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          handleFileSelect(e.target.files[0]);
+        }
+      });
+
+      function handleFileSelect(file) {
+        state.file = file;
+        state.uploadedChunks = new Set();
+
+        elements.fileInfo.classList.add("show");
+        elements.fileName.textContent = file.name;
+        elements.fileSize.textContent = formatSize(file.size);
+        elements.fileMd5.textContent = "计算中...";
+        elements.progressContainer.classList.remove("show");
+        elements.uploadBtn.disabled = true;
+        elements.statusLog.innerHTML = "";
+
+        log(`已选择文件: ${file.name} (${formatSize(file.size)})`);
+        initUpload();
+      }
+
+      elements.uploadBtn.addEventListener("click", startUpload);
+      elements.cancelBtn.addEventListener("click", cancelUpload);
+      elements.refreshListBtn.addEventListener("click", refreshFileList);
+
+      // 初始化
+      loadSystemInfo();
+      refreshFileList();
+
+      // 加载SparkMD5库
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js";
+      document.head.appendChild(script);
+    </script>
+  </body>
+</html>

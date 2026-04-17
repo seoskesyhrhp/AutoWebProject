@@ -44,3 +44,7 @@ apps/
 utils/
 corn/
 static/fake-progress/
+
+# Chunk upload directories
+static/target/
+.chunks/
