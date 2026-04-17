@@ -50,25 +50,49 @@
         will-change: auto;
       }
       .container {
-        max-width: 900px;
+        max-width: 1400px;
         margin: 0 auto;
         width: 100%;
-        padding: 0 10px;
+        padding: 0 15px;
         box-sizing: border-box;
         position: relative;
         z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: start;
       }
       .card {
         background: rgba(15, 23, 42, 0.9);
         border-radius: 16px;
         padding: 20px;
-        margin-bottom: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         border: 1px solid rgba(0, 212, 255, 0.2);
         width: 100%;
         max-width: 100%;
         position: relative;
         overflow: hidden;
+      }
+      .card-full {
+        grid-column: 1 / -1;
+      }
+      .left-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .right-column .card {
+        height: fit-content;
+        max-height: calc(100vh - 200px);
+      }
+      .right-column .file-list {
+        max-height: calc(100vh - 350px);
+        overflow-y: auto;
       }
       .card::before {
         content: "";
@@ -81,8 +105,8 @@
       }
       h1 {
         color: #00d4ff;
-        margin-bottom: 10px;
-        font-size: 24px;
+        margin-bottom: 8px;
+        font-size: 20px;
         text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
         letter-spacing: 2px;
       }
@@ -93,8 +117,8 @@
       }
       .subtitle {
         color: #7b8a9a;
-        margin-bottom: 20px;
-        font-size: 14px;
+        margin-bottom: 15px;
+        font-size: 13px;
       }
       .upload-area {
         border: 2px dashed rgba(0, 212, 255, 0.4);
@@ -360,16 +384,18 @@
         border: 1px solid rgba(0, 212, 255, 0.3);
       }
       .system-info {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        display: flex;
+        flex-wrap: wrap;
         gap: 12px;
-        margin-top: 15px;
+        margin-top: 12px;
       }
       .info-item {
         background: rgba(0, 212, 255, 0.05);
-        padding: 12px;
+        padding: 10px 15px;
         border-radius: 8px;
         border: 1px solid rgba(0, 212, 255, 0.15);
+        flex: 1;
+        min-width: 150px;
       }
       .info-item .label {
         color: #7b8a9a;
@@ -427,92 +453,107 @@
       ::-webkit-scrollbar-thumb:hover {
         background: rgba(0, 212, 255, 0.5);
       }
+      /* 响应式布局 */
+      @media (max-width: 900px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+        .card-full {
+          grid-column: 1;
+        }
+      }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div class="container">
-      <div class="card">
+      <!-- 顶部标题栏 -->
+      <div class="card card-full">
         <h1>⚡ 大文件切片上传系统</h1>
         <p class="subtitle">// 断网续传 · 文件秒传 · 自动合并</p>
-
         <!-- 系统信息 -->
         <div id="systemInfo" class="system-info"></div>
       </div>
 
-      <div class="card">
-        <h3 style="margin-bottom: 12px">⚙ 系统配置</h3>
-        <div class="config-panel">
-          <div class="config-row">
-            <label>切片大小:</label>
-            <select id="chunkSize">
-              <option value="1048576">1 MB</option>
-              <option value="5242880">5 MB</option>
-              <option value="10485760" selected>10 MB</option>
-              <option value="52428800">50 MB</option>
-            </select>
+      <!-- 左侧列 -->
+      <div class="left-column">
+        <div class="card">
+          <h3 style="margin-bottom: 12px">⚙ 系统配置</h3>
+          <div class="config-panel">
+            <div class="config-row">
+              <label>切片大小:</label>
+              <select id="chunkSize">
+                <option value="1048576">1 MB</option>
+                <option value="5242880">5 MB</option>
+                <option value="10485760" selected>10 MB</option>
+                <option value="52428800">50 MB</option>
+              </select>
+            </div>
+            <div class="config-row">
+              <label>并发数:</label>
+              <select id="concurrency">
+                <option value="1">1 个</option>
+                <option value="3" selected>3 个</option>
+                <option value="5">5 个</option>
+                <option value="10">10 个</option>
+              </select>
+            </div>
           </div>
-          <div class="config-row">
-            <label>并发数:</label>
-            <select id="concurrency">
-              <option value="1">1 个</option>
-              <option value="3" selected>3 个</option>
-              <option value="5">5 个</option>
-              <option value="10">10 个</option>
-            </select>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 12px">📂 文件选择</h3>
+          <div class="upload-area" id="uploadArea">
+            <div class="icon">⚡</div>
+            <p>点击或拖拽文件到此处</p>
+            <p style="font-size: 11px; color: #7b8a9a; margin-top: 8px">支持任意大小文件 · 切片并行上传</p>
+            <input type="file" id="fileInput" />
           </div>
+
+          <div class="file-info" id="fileInfo">
+            <div class="row">
+              <span class="label">文件名:</span>
+              <span class="value" id="fileName"></span>
+            </div>
+            <div class="row">
+              <span class="label">文件大小:</span>
+              <span class="value" id="fileSize"></span>
+            </div>
+            <div class="row">
+              <span class="label">文件MD5:</span>
+              <span class="value" id="fileMd5">计算中...</span>
+            </div>
+            <div class="row">
+              <span class="label">切片数量:</span>
+              <span class="value" id="chunkCount"></span>
+            </div>
+          </div>
+
+          <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+              <div class="progress-text" id="progressText">0%</div>
+            </div>
+            <div class="chunk-progress" id="chunkProgress"></div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" id="uploadBtn" disabled>▶ 启动上传</button>
+            <button class="btn btn-danger" id="cancelBtn" style="display: none">■ 终止任务</button>
+            <button class="btn btn-secondary" id="checkBtn" style="display: none">⟳ 断点检测</button>
+          </div>
+
+          <div class="status-log" id="statusLog"></div>
         </div>
       </div>
 
-      <div class="card">
-        <h3 style="margin-bottom: 12px">📂 文件选择</h3>
-        <div class="upload-area" id="uploadArea">
-          <div class="icon">⚡</div>
-          <p>点击或拖拽文件到此处</p>
-          <p style="font-size: 11px; color: #7b8a9a; margin-top: 8px">支持任意大小文件 · 切片并行上传</p>
-          <input type="file" id="fileInput" />
+      <!-- 右侧列 -->
+      <div class="right-column">
+        <div class="card">
+          <h3 style="margin-bottom: 12px">📋 上传记录</h3>
+          <button class="btn btn-secondary" id="refreshListBtn">⟳ 刷新</button>
+          <div class="file-list" id="fileList"></div>
         </div>
-
-        <div class="file-info" id="fileInfo">
-          <div class="row">
-            <span class="label">文件名:</span>
-            <span class="value" id="fileName"></span>
-          </div>
-          <div class="row">
-            <span class="label">文件大小:</span>
-            <span class="value" id="fileSize"></span>
-          </div>
-          <div class="row">
-            <span class="label">文件MD5:</span>
-            <span class="value" id="fileMd5">计算中...</span>
-          </div>
-          <div class="row">
-            <span class="label">切片数量:</span>
-            <span class="value" id="chunkCount"></span>
-          </div>
-        </div>
-
-        <div class="progress-container" id="progressContainer">
-          <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-            <div class="progress-text" id="progressText">0%</div>
-          </div>
-          <div class="chunk-progress" id="chunkProgress"></div>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn btn-primary" id="uploadBtn" disabled>▶ 启动上传</button>
-          <button class="btn btn-danger" id="cancelBtn" style="display: none">■ 终止任务</button>
-          <button class="btn btn-secondary" id="checkBtn" style="display: none">⟳ 断点检测</button>
-        </div>
-
-        <div class="status-log" id="statusLog"></div>
-      </div>
-
-      <div class="card">
-        <h3 style="margin-bottom: 12px">📋 上传记录</h3>
-        <button class="btn btn-secondary" id="refreshListBtn">⟳ 刷新</button>
-        <div class="file-list" id="fileList"></div>
       </div>
     </div>
 
