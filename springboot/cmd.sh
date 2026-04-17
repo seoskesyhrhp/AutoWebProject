@@ -1,47 +1,32 @@
 #!/bin/bash
 
-# 设置Maven内存参数，避免打包卡死
+# 设置Maven内存参数
 export MAVEN_OPTS="-Xmx2g -Xms512m -XX:MaxMetaspaceSize=512m"
 
-# 清理目标目录
-rm -rf /Users/mac/desktop/web/java/target/* 2>/dev/null || true
-rm -rf /Users/mac/Desktop/project/desktop/SmartChatSystem/AutoWebProject/springboot/target/* 2>/dev/null || true
+echo "[INFO] [$(date +%Y%m%d_%H%M%S)] 开始胖打包..."
+echo "[INFO] 使用 bundle-frontend profile，包含 static/ 和 templates/"
 
-echo "[INFO] [$(date +%Y%m%d_%H%M%S)] Cleaning and building the project..."
+# 进入项目目录
+cd /Users/mac/Desktop/project/desktop/SmartChatSystem/AutoWebProject/springboot
 
-# 使用后台进程+超时机制，防止打包卡死
-(
-  cd /Users/mac/Desktop/project/desktop/SmartChatSystem/AutoWebProject/springboot
-  mvn -Dmaven.repo.local=.m2 -Pbundle-frontend clean package -DskipTests -Dspring-boot.repackage.skip=false
-) &
-MVN_PID=$!
+# 使用Maven的clean目标清理，避免rm交互问题
+echo "[INFO] 清理target目录..."
+rm -rf /Users/mac/desktop/web/java/target/* 
+mvn clean -q
 
-# 等待最多300秒(5分钟)
-wait $MVN_PID &
-WAIT_PID=$!
+# 执行打包
+echo "[INFO] 开始编译打包..."
+mvn -Dmaven.repo.local=.m2 -Pbundle-frontend package -DskipTests -Dspring-boot.repackage.skip=false
 
-# 超时检查
-for i in {1..300}; do
-  if ! kill -0 $WAIT_PID 2>/dev/null; then
-    break
-  fi
-  sleep 1
-done
-
-# 如果还在运行，强制终止
-if kill -0 $WAIT_PID 2>/dev/null; then
-  echo "[ERROR] Maven打包超时(300s)，强制终止..."
-  kill -9 $MVN_PID 2>/dev/null
-  kill -9 $WAIT_PID 2>/dev/null
-  exit 1
-fi
-
-wait $WAIT_PID
 BUILD_EXIT_CODE=$?
 
 if [ $BUILD_EXIT_CODE -eq 0 ]; then
-  echo "[INFO] [$(date +%Y%m%d_%H%M%S)] Build completed successfully."
+  echo ""
+  echo "[SUCCESS] [$(date +%Y%m%d_%H%M%S)] 胖打包完成!"
+  echo "[INFO] JAR文件位置: target/autoweb-springboot-1.0.1.jar"
+  ls -lh target/*.jar 2>/dev/null | awk '{print "[INFO] 文件大小: " $5 " " $9}'
 else
-  echo "[ERROR] [$(date +%Y%m%d_%H%M%S)] Build failed with exit code: $BUILD_EXIT_CODE"
+  echo ""
+  echo "[ERROR] [$(date +%Y%m%d_%H%M%S)] 打包失败，退出码: $BUILD_EXIT_CODE"
   exit 1
 fi
