@@ -50,8 +50,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/ehs/watermark").setViewName("forward:/pages/ehs/watermark.html");
         registry.addViewController("/system").setViewName("forward:/pages/ehs/monitor.html");
         registry.addViewController("/system/").setViewName("forward:/pages/ehs/monitor.html");
-        registry.addViewController("/ehs/upload").setViewName("forward:/pages/ehs/chunkUpload.html");
-        registry.addViewController("/ehs/upload/").setViewName("forward:/pages/ehs/chunkUpload.html");
+        registry.addViewController("/ehs/chunk").setViewName("forward:/pages/ehs/chunkUpload.html");
+        registry.addViewController("/ehs/chunk/").setViewName("forward:/pages/ehs/chunkUpload.html");
         registry.addViewController("/router").setViewName("forward:/pages/api/explorer.html");
         registry.addViewController("/explorer").setViewName("forward:/pages/api/explorer.html");
         registry.addViewController("/task").setViewName("forward:/pages/index/index.html");

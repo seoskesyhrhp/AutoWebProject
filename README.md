@@ -198,7 +198,7 @@ curl -X POST http://localhost:8080/upload/merge -d "fileId=abc123"
 - 压缩与水印处理
 - 上传进度监控
 
-### 大文件切片上传 (`/ehs/upload`)
+### 大文件切片上传 (`/ehs/chunk`)
 
 - 支持**断网续传**：网络中断后可继续上传
 - 支持**文件秒传**：MD5校验，相同文件直接返回
