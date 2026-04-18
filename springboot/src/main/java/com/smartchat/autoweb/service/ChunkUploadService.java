@@ -34,10 +34,21 @@ public class ChunkUploadService {
      * 其他: static/target
      */
     public Path getTargetDirectory() {
+        return getTargetDirectory(null);
+    }
+
+    /**
+     * 获取目标保存目录（支持自定义子目录）
+     * @param subDir 子目录，如 "json"、"static/target"，为null时使用默认目录
+     */
+    public Path getTargetDirectory(String subDir) {
         String osName = System.getProperty("os.name", "").toLowerCase();
         Path targetDir;
 
-        if (osName.contains("linux")) {
+        if (subDir != null && !subDir.isBlank()) {
+            // 使用指定的子目录
+            targetDir = Paths.get(projectRoot, subDir.split("/"));
+        } else if (osName.contains("linux")) {
             targetDir = Paths.get("/usr/desktop/Webdemo/Djangodemo/ehs/target");
         } else {
             targetDir = Paths.get(projectRoot, "static", "target");
@@ -62,11 +73,22 @@ public class ChunkUploadService {
         return targetDir;
     }
 
+    // 存储每个上传任务的自定义目标目录
+    private final Map<String, String> uploadTargetDirMap = new ConcurrentHashMap<>();
+
     /**
      * 获取临时目录（存储切片）
      */
     public Path getTempDirectory(String fileId) {
-        Path tempDir = getTargetDirectory().resolve(".chunks").resolve(fileId);
+        return getTempDirectory(fileId, null);
+    }
+
+    /**
+     * 获取临时目录（支持指定目标目录）
+     * @param targetDir 目标子目录
+     */
+    public Path getTempDirectory(String fileId, String targetDir) {
+        Path tempDir = getTargetDirectory(targetDir).resolve(".chunks").resolve(fileId);
         try {
             Files.createDirectories(tempDir);
         } catch (IOException e) {
@@ -83,12 +105,25 @@ public class ChunkUploadService {
     }
 
     /**
-     * 初始化上传任务
+     * 初始化上传任务（使用默认目录）
      */
     public Map<String, Object> initUpload(String fileId, String filename, long fileSize, int totalChunks, String fileMd5) {
+        return initUpload(fileId, filename, fileSize, totalChunks, fileMd5, null);
+    }
+
+    /**
+     * 初始化上传任务（支持指定目标目录）
+     * @param targetDir 目标子目录，如 "json"、"static/target"，为null时使用默认目录
+     */
+    public Map<String, Object> initUpload(String fileId, String filename, long fileSize, int totalChunks, String fileMd5, String targetDir) {
         try {
-            Path targetDir = getTargetDirectory();
-            Path targetFile = targetDir.resolve(filename);
+            Path targetDirPath = getTargetDirectory(targetDir);
+            Path targetFile = targetDirPath.resolve(filename);
+
+            // 保存该上传任务的目标目录
+            if (targetDir != null && !targetDir.isBlank()) {
+                uploadTargetDirMap.put(fileId, targetDir);
+            }
 
             // 检查文件是否已存在（秒传）
             if (Files.exists(targetFile)) {
@@ -103,7 +138,8 @@ public class ChunkUploadService {
                                     "filename", filename,
                                     "path", targetFile.toString(),
                                     "size", fileSize,
-                                    "instant", true
+                                    "instant", true,
+                                    "targetDir", targetDir != null ? targetDir : "default"
                             )
                     );
                 }
@@ -112,7 +148,7 @@ public class ChunkUploadService {
             }
 
             // 创建临时目录
-            Path tempDir = getTempDirectory(fileId);
+            Path tempDir = getTempDirectory(fileId, targetDir);
 
             // 保存进度信息
             UploadProgress progress = new UploadProgress();
@@ -226,8 +262,10 @@ public class ChunkUploadService {
                 );
             }
 
-            Path tempDir = getTempDirectory(fileId);
-            Path targetDir = getTargetDirectory();
+            // 获取该上传任务的目标目录
+            String targetDirStr = uploadTargetDirMap.get(fileId);
+            Path tempDir = getTempDirectory(fileId, targetDirStr);
+            Path targetDir = getTargetDirectory(targetDirStr);
             Path targetFile = targetDir.resolve(progress.getFilename());
 
             // 如果目标文件存在，先删除
@@ -253,6 +291,7 @@ public class ChunkUploadService {
             // 清理临时文件
             deleteDirectory(tempDir);
             uploadProgressMap.remove(fileId);
+            uploadTargetDirMap.remove(fileId);
 
             logger.info("文件合并成功: {}, size={}, md5={}", targetFile, Files.size(targetFile), finalMd5);
 
@@ -321,11 +360,14 @@ public class ChunkUploadService {
      */
     public Map<String, Object> cancelUpload(String fileId) {
         try {
-            Path tempDir = getTempDirectory(fileId);
+            // 获取该上传任务的目标目录
+            String targetDirStr = uploadTargetDirMap.get(fileId);
+            Path tempDir = getTempDirectory(fileId, targetDirStr);
             if (Files.exists(tempDir)) {
                 deleteDirectory(tempDir);
             }
             uploadProgressMap.remove(fileId);
+            uploadTargetDirMap.remove(fileId);
 
             return Map.of("code", 200, "msg", "已取消上传并清理临时文件");
         } catch (Exception e) {

@@ -43,6 +43,7 @@ public class ChunkUploadController {
      * @param fileSize 文件总大小
      * @param totalChunks 总切片数
      * @param fileMd5 文件MD5（用于秒传校验）
+     * @param targetDir 目标目录，如 "json"、"static/target"，为空时使用默认目录
      */
     @PostMapping("/init")
     public ResponseEntity<Map<String, Object>> initUpload(
@@ -50,12 +51,13 @@ public class ChunkUploadController {
             @RequestParam("filename") String filename,
             @RequestParam("fileSize") long fileSize,
             @RequestParam("totalChunks") int totalChunks,
-            @RequestParam(value = "fileMd5", required = false) String fileMd5
+            @RequestParam(value = "fileMd5", required = false) String fileMd5,
+            @RequestParam(value = "targetDir", required = false) String targetDir
     ) {
-        logger.info("初始化上传: fileId={}, filename={}, size={}, chunks={}, md5={}",
-                fileId, filename, fileSize, totalChunks, fileMd5);
+        logger.info("初始化上传: fileId={}, filename={}, size={}, chunks={}, md5={}, targetDir={}",
+                fileId, filename, fileSize, totalChunks, fileMd5, targetDir);
 
-        Map<String, Object> result = chunkUploadService.initUpload(fileId, filename, fileSize, totalChunks, fileMd5);
+        Map<String, Object> result = chunkUploadService.initUpload(fileId, filename, fileSize, totalChunks, fileMd5, targetDir);
         return ResponseEntity.ok(result);
     }
 

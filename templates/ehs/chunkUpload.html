@@ -498,6 +498,15 @@
                 <option value="10">10 个</option>
               </select>
             </div>
+            <div class="config-row">
+              <label>保存目录:</label>
+              <select id="targetDir">
+                <option value="">默认 (static/target)</option>
+                <option value="json">json/</option>
+                <option value="static">static/</option>
+                <option value="templates">templates/</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -592,6 +601,7 @@
         systemInfo: document.getElementById("systemInfo"),
         chunkSize: document.getElementById("chunkSize"),
         concurrency: document.getElementById("concurrency"),
+        targetDir: document.getElementById("targetDir"),
         refreshListBtn: document.getElementById("refreshListBtn"),
       };
 
@@ -719,6 +729,7 @@
         log(`[INIT] 初始化上传: ${state.file.name}, 切片数: ${totalChunks}`);
 
         try {
+          const targetDir = elements.targetDir.value;
           const response = await fetch("/upload/init", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -728,6 +739,7 @@
               fileSize: state.file.size,
               totalChunks: totalChunks,
               fileMd5: state.fileId,
+              targetDir: targetDir,
             }),
           });
 
