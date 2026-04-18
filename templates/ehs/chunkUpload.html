@@ -680,7 +680,7 @@
             const item = document.createElement("div");
             item.className = "chunk-item";
             item.dataset.index = i;
-            item.innerHTML = `<span class="chunk-index">${i}</span>`;
+            item.innerHTML = `<span class="chunk-index">${i + 1}</span>`;
             elements.chunkProgress.appendChild(item);
           }
           if (total > maxDisplay) {
