@@ -178,18 +178,29 @@ public class ChunkUploadService {
         }
     }
 
+    // 限制单个切片最大大小为 10MB
+    private static final int MAX_CHUNK_SIZE = 10 * 1024 * 1024;
+
     /**
      * 上传切片
      */
     public Map<String, Object> uploadChunk(String fileId, int chunkIndex, byte[] chunkData, String chunkMd5) {
         try {
+            // 限制切片大小，防止内存溢出
+            if (chunkData.length > MAX_CHUNK_SIZE) {
+                logger.warn("切片过大: {} > {} bytes", chunkData.length, MAX_CHUNK_SIZE);
+                return Map.of("code", 400, "msg", "切片大小超过限制(10MB)，请减小切片大小");
+            }
+
             UploadProgress progress = uploadProgressMap.computeIfAbsent(fileId, this::loadProgress);
 
             if (progress == null) {
                 return Map.of("code", 404, "msg", "上传任务不存在，请重新初始化");
             }
 
-            Path tempDir = getTempDirectory(fileId);
+            // 获取该上传任务的目标目录
+            String targetDirStr = uploadTargetDirMap.get(fileId);
+            Path tempDir = getTempDirectory(fileId, targetDirStr);
             Path chunkFile = tempDir.resolve(String.format("chunk_%d.tmp", chunkIndex));
 
             // 校验切片MD5
