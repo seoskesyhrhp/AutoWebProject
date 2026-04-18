@@ -423,8 +423,8 @@
         padding: 5px;
       }
       .chunk-item {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         border-radius: 3px;
         background: rgba(50, 50, 50, 0.5);
         border: 1px solid rgba(0, 212, 255, 0.2);
@@ -439,6 +439,16 @@
         background: #00d4ff;
         box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
         border-color: #00d4ff;
+      }
+      .chunk-index {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        color: red;
+        font-size: 12px;
+        font-weight: 600;
       }
       /* 滚动条美化 */
       ::-webkit-scrollbar {
@@ -532,6 +542,10 @@
               <span class="value" id="fileSize"></span>
             </div>
             <div class="row">
+              <span class="label">修改时间:</span>
+              <span class="value" id="fileModified"></span>
+            </div>
+            <div class="row">
               <span class="label">文件MD5:</span>
               <span class="value" id="fileMd5">计算中...</span>
             </div>
@@ -590,6 +604,7 @@
         fileInfo: document.getElementById("fileInfo"),
         fileName: document.getElementById("fileName"),
         fileSize: document.getElementById("fileSize"),
+        fileModified: document.getElementById("fileModified"),
         fileMd5: document.getElementById("fileMd5"),
         chunkCount: document.getElementById("chunkCount"),
         progressContainer: document.getElementById("progressContainer"),
@@ -664,6 +679,7 @@
             const item = document.createElement("div");
             item.className = "chunk-item";
             item.dataset.index = i;
+            item.innerHTML = `<span class="chunk-index">${i}</span>`;
             elements.chunkProgress.appendChild(item);
           }
           if (total > maxDisplay) {
@@ -740,6 +756,7 @@
               fileId: state.fileId,
               filename: state.file.name,
               fileSize: state.file.size,
+              fileModified: state.file.lastModified,
               totalChunks: totalChunks,
               fileMd5: state.fileId,
               targetDir: targetDir,
@@ -1025,6 +1042,7 @@
         elements.fileInfo.classList.add("show");
         elements.fileName.textContent = file.name;
         elements.fileSize.textContent = formatSize(file.size);
+        elements.fileModified.textContent = new Date(file.lastModified).toLocaleString();
         elements.fileMd5.textContent = "计算中...";
         elements.progressContainer.classList.remove("show");
         elements.uploadBtn.disabled = true;
