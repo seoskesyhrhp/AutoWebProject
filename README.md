@@ -132,6 +132,15 @@ python main.py
 | GET    | `/upload/files`         | 列出已上传文件 |
 | GET    | `/upload/info`          | 获取系统信息   |
 
+**参数说明**
+
+`/upload/init` 接口支持 `targetDir` 参数指定保存目录：
+
+- `targetDir=json` - 保存到 `json/` 目录
+- `targetDir=static` - 保存到 `static/` 目录
+- `targetDir=templates` - 保存到 `templates/` 目录
+- 不传或为空 - 使用默认目录（Linux: `/usr/desktop/Webdemo/Djangodemo/ehs/target`，其他: `static/target`）
+
 ### 示例
 
 **获取巡检数据**
@@ -162,13 +171,22 @@ curl -X POST http://localhost:8080/ehs/SaveObjectPhotos/batch \
 **大文件切片上传**
 
 ```bash
-# 1. 初始化上传
+# 1. 初始化上传（保存到默认目录）
 curl -X POST http://localhost:8080/upload/init \
   -d "fileId=abc123" \
   -d "filename=large_file.zip" \
   -d "fileSize=104857600" \
   -d "totalChunks=10" \
   -d "fileMd5=d41d8cd98f00b204e9800998ecf8427e"
+
+# 1. 初始化上传（保存到 json/ 目录）
+curl -X POST http://localhost:8080/upload/init \
+  -d "fileId=abc123" \
+  -d "filename=config.json" \
+  -d "fileSize=1024" \
+  -d "totalChunks=1" \
+  -d "fileMd5=d41d8cd98f00b204e9800998ecf8427e" \
+  -d "targetDir=json"
 
 # 2. 上传切片
 for i in {0..9}; do
@@ -204,6 +222,7 @@ curl -X POST http://localhost:8080/upload/merge -d "fileId=abc123"
 - 支持**文件秒传**：MD5校验，相同文件直接返回
 - 支持**文件替换**：同名文件自动覆盖
 - 支持**大文件**：无文件大小限制
+- 支持**自定义保存目录**：可选择保存到 `json/`、`static/`、`templates/` 或默认目录
 - **智能路径**：
   - Linux服务器：`/usr/desktop/Webdemo/Djangodemo/ehs/target`
   - 开发环境：`static/target`
@@ -241,6 +260,13 @@ curl -X POST http://localhost:8080/upload/merge -d "fileId=abc123"
 ```
 
 ## 最近更新
+
+### v1.0.3 (2026-04-18)
+
+- 切片上传功能增强
+  - 支持自定义目标目录（`json/`、`static/`、`templates/`）
+  - 前端配置面板新增保存目录选择
+  - 后端 `upload/init` 接口新增 `targetDir` 参数
 
 ### v1.0.2 (2026-04-13)
 
