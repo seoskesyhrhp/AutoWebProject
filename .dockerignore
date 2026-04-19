@@ -8,11 +8,10 @@
 .vscode
 *.iml
 
-# 构建产物
-springboot/target/
+# Maven本地仓库
 springboot/.m2/
 
-# Python（非Java服务相关）
+# Python
 __pycache__
 *.pyc
 *.pyo
@@ -29,11 +28,8 @@ venv
 *.md
 !README.md
 
-# 脚本（运行时不需要）
+# 脚本
 cmd.sh
 start.sh
 monitor.sh
 restartJavaService.sh
-
-# 大文件和测试数据
-springboot/target/
