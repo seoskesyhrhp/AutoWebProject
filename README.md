@@ -93,7 +93,79 @@ mvn clean package -Pbundle-frontend
 
 # 运行
 java -jar target/autoweb-springboot-1.0.1.jar
+
+# 使用启动脚本（带内存限制和JVM优化）
+./start.sh
+
+# 使用胖打包脚本
+./cmd.sh
 ```
+
+### Docker部署
+
+使用 `docker.sh` 一键管理：
+
+```bash
+# 完整构建（JAR包 + Docker镜像）
+./docker.sh build
+
+# 仅构建 JAR 包
+./docker.sh jar
+
+# 仅构建 Docker 镜像（需先构建JAR包）
+./docker.sh image
+
+# 启动容器（自动挂载 templates/json/static 目录）
+./docker.sh run
+
+# 查看实时日志
+./docker.sh logs
+
+# 健康检查
+./docker.sh health
+
+# 重启容器
+./docker.sh restart
+
+# 停止容器
+./docker.sh stop
+
+# 导出镜像为tar文件（离线部署）
+./docker.sh save
+```
+
+**离线部署**：
+
+```bash
+# 1. 导出镜像
+./docker.sh save
+
+# 2. 复制tar文件到目标服务器
+scp autoweb-springboot-1.0.1.tar user@server:/tmp/
+
+# 3. 在目标服务器加载镜像
+docker load -i autoweb-springboot-1.0.1.tar
+
+# 4. 运行容器
+docker run -d --name autoweb -p 8000:8000 \
+  -v /path/to/templates:/app/templates \
+  -v /path/to/json:/app/json \
+  -v /path/to/static:/app/static \
+  --restart unless-stopped \
+  autoweb-springboot:1.0.1
+```
+
+| 命令      | 说明                           |
+| --------- | ------------------------------ |
+| `build`   | 完整构建（JAR包 + Docker镜像） |
+| `jar`     | 仅构建 JAR 包                  |
+| `image`   | 仅构建 Docker 镜像             |
+| `run`     | 启动容器                       |
+| `stop`    | 停止并删除容器                 |
+| `logs`    | 查看实时日志                   |
+| `health`  | 健康检查                       |
+| `restart` | 重启容器                       |
+| `save`    | 导出镜像为tar文件（离线部署）  |
 
 ### Python服务启动
 
@@ -260,6 +332,24 @@ curl -X POST http://localhost:8080/upload/merge -d "fileId=abc123"
 ```
 
 ## 最近更新
+
+### v1.0.4 (2026-04-19)
+
+- Docker容器化部署
+  - 新增 `Dockerfile` 和 `.dockerignore`
+  - 新增 `docker.sh` 一键管理脚本（build/run/stop/logs/health/restart/save）
+  - 支持离线部署（`docker save` / `docker load`）
+- 服务稳定性优化
+  - Tomcat连接限制（max-connections/max-threads/timeout）
+  - 切片大小限制（10MB），防止内存溢出
+  - 新增 `start.sh` 启动脚本（JVM内存优化）
+  - 新增 `restartJavaService.sh` 重启脚本（带资源检查）
+  - 新增 `monitor.sh` 监控脚本（自动检测卡死并重启）
+- 分片上传健壮性增强
+  - 前端超时重试（60秒超时，3次重试，指数退避）
+  - 慢网络自动降低并发数
+  - 默认切片大小改为2MB
+  - `Promise.allSettled` 错误隔离
 
 ### v1.0.3 (2026-04-18)
 
