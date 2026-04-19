@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+.qoder
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# 构建产物
+springboot/target/
+springboot/.m2/
+
+# Python（非Java服务相关）
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+
+# 日志和临时文件
+*.log
+/tmp/
+.DS_Store
+
+# 文档
+*.md
+!README.md
+
+# 脚本（运行时不需要）
+cmd.sh
+start.sh
+monitor.sh
+restartJavaService.sh
+
+# 大文件和测试数据
+springboot/target/
